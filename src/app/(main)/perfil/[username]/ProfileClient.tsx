@@ -52,37 +52,24 @@ export default function ProfileClient({ profile, isOwnProfile, initiallyFollowin
   const goals = (profile.user_goals ?? []).map((g) => g.goal as keyof typeof GOAL_LABELS)
   const interests = (profile.user_interests ?? []).filter((ui) => ui?.topic)
 
-  const showStack = langs.length > 0 || isOwnProfile
-  const showGoals = goals.length > 0 || isOwnProfile
+  const showStack     = langs.length > 0 || isOwnProfile
+  const showGoals     = goals.length > 0 || isOwnProfile
   const showInterests = interests.length > 0 || isOwnProfile
 
   return (
     <div className="min-h-screen">
-      {/* Cover gradient */}
-      <div className="h-32 bg-gradient-to-br from-[var(--accent)] via-purple-800 to-[var(--bg-card)]" />
+      {/* Cover */}
+      <div className="h-36 bg-gradient-to-br from-[var(--accent)] via-purple-800 to-[var(--bg-card)]" />
 
-      <div className="px-5 pt-3 pb-5">
-        {/* Header row: avatar + identity on one line; action button on the right */}
-        <div className="flex items-end justify-between gap-4 -mt-14 mb-3">
-          <div className="flex items-end gap-4 min-w-0">
-            <Avatar
-              src={profile.avatar_url}
-              name={profile.full_name}
-              size="xl"
-              className="border-4 border-[var(--bg)] flex-shrink-0"
-            />
-            <div className="pb-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl font-black truncate">{profile.full_name}</h1>
-                {profile.is_open_to_connect && (
-                  <span className="text-[10px] text-[var(--green)] font-medium bg-[var(--green-glow)] px-2 py-0.5 rounded-full border border-[var(--green)]/30 whitespace-nowrap">
-                    ● Open to connect
-                  </span>
-                )}
-              </div>
-              <p className="text-[var(--text-muted)] text-sm">@{profile.username}</p>
-            </div>
-          </div>
+      <div className="px-6 pb-8">
+        {/* Avatar + action */}
+        <div className="flex items-end justify-between gap-4 -mt-14 mb-4">
+          <Avatar
+            src={profile.avatar_url}
+            name={profile.full_name}
+            size="xl"
+            className="border-4 border-[var(--bg)] flex-shrink-0"
+          />
           {isOwnProfile ? (
             <button
               onClick={() => setEditing(true)}
@@ -100,69 +87,89 @@ export default function ProfileClient({ profile, isOwnProfile, initiallyFollowin
           )}
         </div>
 
-        {/* Meta row */}
-        <div className="flex items-center gap-2 mb-3 text-xs text-[var(--text-muted)] flex-wrap">
-          <span>📍 {profile.city}</span>
-          <span className="px-2 py-0.5 rounded-md bg-[var(--bg-hover)] border border-[var(--border)] font-medium">
-            {LEVEL_LABELS[profile.level]}
-          </span>
-          {profile.github_url && (
-            <a href={profile.github_url} target="_blank" rel="noopener"
-              className="hover:text-[var(--text)] flex items-center gap-1">
-              🐙 GitHub
-            </a>
-          )}
-          {profile.linkedin_url && (
-            <a href={profile.linkedin_url} target="_blank" rel="noopener"
-              className="hover:text-[var(--text)] flex items-center gap-1">
-              💼 LinkedIn
-            </a>
-          )}
-          {profile.website_url && (
-            <a href={profile.website_url} target="_blank" rel="noopener"
-              className="hover:text-[var(--text)] flex items-center gap-1">
-              🔗 Web
-            </a>
-          )}
+        {/* Name + username */}
+        <div className="mb-3">
+          <div className="flex items-center gap-2 flex-wrap mb-0.5">
+            <h1 className="text-[22px] font-black tracking-tight">{profile.full_name}</h1>
+            {profile.is_open_to_connect && (
+              <span className="text-[10px] text-[var(--green)] font-semibold bg-[#EEF4ED] px-2.5 py-1 rounded-full border border-[var(--green)]/30 whitespace-nowrap">
+                ● Open to connect
+              </span>
+            )}
+          </div>
+          <p className="text-[var(--text-muted)] text-[14px]">@{profile.username}</p>
         </div>
 
         {/* Bio */}
         {profile.bio ? (
-          <p className="text-sm text-[var(--text)] mb-4 leading-relaxed">{profile.bio}</p>
+          <p className="text-[14px] text-[var(--text)] leading-relaxed mb-4">{profile.bio}</p>
         ) : isOwnProfile ? (
           <button
             onClick={() => setEditing(true)}
-            className="text-sm text-[var(--text-muted)] mb-4 italic hover:text-[var(--accent)] text-left"
+            className="text-[13px] text-[var(--text-muted)] mb-4 italic hover:text-[var(--accent)] text-left transition-colors"
           >
             ✍️ Añade una bio para que otros devs te conozcan…
           </button>
         ) : null}
 
+        {/* Meta chips */}
+        <div className="flex flex-wrap gap-2 mb-5">
+          {profile.city && (
+            <span className="inline-flex items-center gap-1 text-[12px] text-[var(--text-muted)] bg-[var(--bg-secondary)] px-3 py-1 rounded-full border border-[var(--border)]">
+              📍 {profile.city}
+            </span>
+          )}
+          <span className="inline-flex items-center text-[12px] font-semibold text-[var(--text)] bg-[var(--bg-secondary)] px-3 py-1 rounded-full border border-[var(--border)]">
+            {LEVEL_LABELS[profile.level]}
+          </span>
+          {profile.github_url && (
+            <a href={profile.github_url} target="_blank" rel="noopener"
+              className="inline-flex items-center gap-1 text-[12px] text-[var(--text-muted)] bg-[var(--bg-secondary)] px-3 py-1 rounded-full border border-[var(--border)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors">
+              🐙 GitHub
+            </a>
+          )}
+          {profile.linkedin_url && (
+            <a href={profile.linkedin_url} target="_blank" rel="noopener"
+              className="inline-flex items-center gap-1 text-[12px] text-[var(--text-muted)] bg-[var(--bg-secondary)] px-3 py-1 rounded-full border border-[var(--border)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors">
+              💼 LinkedIn
+            </a>
+          )}
+          {profile.website_url && (
+            <a href={profile.website_url} target="_blank" rel="noopener"
+              className="inline-flex items-center gap-1 text-[12px] text-[var(--text-muted)] bg-[var(--bg-secondary)] px-3 py-1 rounded-full border border-[var(--border)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors">
+              🔗 Web
+            </a>
+          )}
+        </div>
+
         {/* Stats */}
-        <div className="flex gap-6 mb-5 text-sm">
-          <div>
-            <span className="font-bold">{profile.posts_count}</span>
-            <span className="text-[var(--text-muted)] ml-1">Posts</span>
+        <div className="flex gap-1 mb-6">
+          <div className="flex-1 text-center py-3 rounded-l-2xl border border-[var(--border)] border-r-0 bg-[var(--bg-secondary)]">
+            <p className="text-[18px] font-black">{profile.posts_count}</p>
+            <p className="text-[11px] text-[var(--text-muted)] font-medium mt-0.5">Posts</p>
           </div>
-          <div>
-            <span className="font-bold">{followersCount}</span>
-            <span className="text-[var(--text-muted)] ml-1">Seguidores</span>
+          <div className="flex-1 text-center py-3 border border-[var(--border)] bg-[var(--bg-secondary)]">
+            <p className="text-[18px] font-black">{followersCount}</p>
+            <p className="text-[11px] text-[var(--text-muted)] font-medium mt-0.5">Seguidores</p>
           </div>
-          <div>
-            <span className="font-bold">{profile.following_count}</span>
-            <span className="text-[var(--text-muted)] ml-1">Siguiendo</span>
+          <div className="flex-1 text-center py-3 rounded-r-2xl border border-[var(--border)] border-l-0 bg-[var(--bg-secondary)]">
+            <p className="text-[18px] font-black">{profile.following_count}</p>
+            <p className="text-[11px] text-[var(--text-muted)] font-medium mt-0.5">Siguiendo</p>
           </div>
         </div>
 
         {/* Stack */}
         {showStack && (
-          <Section title="Stack">
+          <InfoSection
+            title="Stack"
+            onEdit={isOwnProfile ? () => setEditing(true) : undefined}
+          >
             {langs.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {langs.map(({ language, proficiency }) => (
                   <span
                     key={language.id}
-                    className="text-xs px-3 py-1 rounded-full font-semibold border"
+                    className="text-[12px] px-3 py-1 rounded-full font-semibold border"
                     style={{
                       color: language.color,
                       borderColor: `${language.color}40`,
@@ -177,18 +184,24 @@ export default function ProfileClient({ profile, isOwnProfile, initiallyFollowin
                 ))}
               </div>
             ) : (
-              <EmptyHint onClick={() => setEditing(true)} text="Añadir lenguajes" />
+              <EmptyHint onClick={() => setEditing(true)} text="Añadir lenguajes a tu stack" />
             )}
-          </Section>
+          </InfoSection>
         )}
 
         {/* Goals */}
         {showGoals && (
-          <Section title="Buscando">
+          <InfoSection
+            title="Buscando"
+            onEdit={isOwnProfile ? () => setEditing(true) : undefined}
+          >
             {goals.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {goals.map((goal) => (
-                  <span key={goal} className="text-xs px-3 py-1 rounded-full border border-[var(--accent)]/40 bg-[var(--accent-glow)] text-[var(--accent)] font-medium">
+                  <span
+                    key={goal}
+                    className="text-[12px] px-3 py-1 rounded-full border border-[var(--accent)]/40 bg-[var(--accent-glow)] text-[var(--accent)] font-medium"
+                  >
                     {GOAL_ICONS[goal]} {GOAL_LABELS[goal]}
                   </span>
                 ))}
@@ -196,16 +209,22 @@ export default function ProfileClient({ profile, isOwnProfile, initiallyFollowin
             ) : (
               <EmptyHint onClick={() => setEditing(true)} text="Cuéntale al algoritmo qué buscas" />
             )}
-          </Section>
+          </InfoSection>
         )}
 
         {/* Interests */}
         {showInterests && (
-          <Section title="Intereses">
+          <InfoSection
+            title="Intereses"
+            onEdit={isOwnProfile ? () => setEditing(true) : undefined}
+          >
             {interests.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {interests.map(({ topic }) => (
-                  <span key={topic.id} className="text-xs px-3 py-1 rounded-full border border-[var(--border)] bg-[var(--bg-hover)] text-[var(--text-muted)]">
+                  <span
+                    key={topic.id}
+                    className="text-[12px] px-3 py-1 rounded-full border border-[var(--border)] bg-[var(--bg-hover)] text-[var(--text-muted)]"
+                  >
                     {topic.icon} {topic.name}
                   </span>
                 ))}
@@ -213,7 +232,7 @@ export default function ProfileClient({ profile, isOwnProfile, initiallyFollowin
             ) : (
               <EmptyHint onClick={() => setEditing(true)} text="Añadir temas de interés" />
             )}
-          </Section>
+          </InfoSection>
         )}
       </div>
 
@@ -223,12 +242,12 @@ export default function ProfileClient({ profile, isOwnProfile, initiallyFollowin
 
       {/* Posts */}
       <div className="border-t border-[var(--border)]">
-        <div className="px-4 py-3 border-b border-[var(--border)]">
-          <h2 className="font-bold text-sm">Posts</h2>
+        <div className="px-6 py-4 border-b border-[var(--border)]">
+          <h2 className="font-bold text-[14px]">Posts</h2>
         </div>
         {postsLoading ? (
           [...Array(3)].map((_, i) => (
-            <div key={i} className="flex gap-3 p-4 border-b border-[var(--border)]">
+            <div key={i} className="flex gap-3 px-6 py-4 border-b border-[var(--border)]">
               <div className="flex-1 space-y-2">
                 <div className="skeleton h-3 w-full rounded" />
                 <div className="skeleton h-3 w-2/3 rounded" />
@@ -236,9 +255,9 @@ export default function ProfileClient({ profile, isOwnProfile, initiallyFollowin
             </div>
           ))
         ) : posts.length === 0 ? (
-          <div className="text-center py-12 text-[var(--text-muted)]">
-            <p className="text-3xl mb-2">✏️</p>
-            <p className="text-sm">Aún no hay posts</p>
+          <div className="text-center py-16 text-[var(--text-muted)]">
+            <p className="text-4xl mb-3">✏️</p>
+            <p className="text-[13px] font-medium">Aún no hay posts</p>
           </div>
         ) : (
           posts.map((post) => (
@@ -250,12 +269,30 @@ export default function ProfileClient({ profile, isOwnProfile, initiallyFollowin
   )
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function InfoSection({
+  title,
+  children,
+  onEdit,
+}: {
+  title: string
+  children: React.ReactNode
+  onEdit?: () => void
+}) {
   return (
-    <div className="mb-4">
-      <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">
-        {title}
-      </p>
+    <div className="mb-5 p-4 rounded-2xl bg-[var(--bg-secondary)] border border-[var(--border)]">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-[0.06em]">
+          {title}
+        </p>
+        {onEdit && (
+          <button
+            onClick={onEdit}
+            className="text-[11px] text-[var(--accent)] font-semibold hover:underline"
+          >
+            Editar
+          </button>
+        )}
+      </div>
       {children}
     </div>
   )
@@ -265,7 +302,7 @@ function EmptyHint({ text, onClick }: { text: string; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="text-xs px-3 py-1.5 rounded-full border border-dashed border-[var(--border-hover)] text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+      className="text-[12px] px-3 py-1.5 rounded-full border border-dashed border-[var(--border-hover)] text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
     >
       + {text}
     </button>

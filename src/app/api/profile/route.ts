@@ -39,17 +39,85 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'Bio máximo 160 caracteres' }, { status: 400 })
   }
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .update({ ...update, updated_at: new Date().toISOString() })
-    .eq('id', user.id)
-    .select('*')
-    .single()
+  if (Object.keys(update).length > 0) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ ...update, updated_at: new Date().toISOString() })
+      .eq('id', user.id)
+      .select('*')
+      .single()
 
-  if (error) {
-    console.error('Profile update error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) {
+      console.error('Profile update error:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    // Save related data if provided
+    if ('languages' in body && Array.isArray(body.languages)) {
+      await supabase.from('user_languages').delete().eq('user_id', user.id)
+      if (body.languages.length > 0) {
+        await supabase.from('user_languages').insert(
+          body.languages.map((l: { language_id: number; proficiency: string }) => ({
+            user_id: user.id,
+            language_id: l.language_id,
+            proficiency: l.proficiency,
+          }))
+        )
+      }
+    }
+
+    if ('goals' in body && Array.isArray(body.goals)) {
+      await supabase.from('user_goals').delete().eq('user_id', user.id)
+      if (body.goals.length > 0) {
+        await supabase.from('user_goals').insert(
+          (body.goals as string[]).map((goal) => ({ user_id: user.id, goal }))
+        )
+      }
+    }
+
+    if ('interests' in body && Array.isArray(body.interests)) {
+      await supabase.from('user_interests').delete().eq('user_id', user.id)
+      if (body.interests.length > 0) {
+        await supabase.from('user_interests').insert(
+          (body.interests as number[]).map((topic_id) => ({ user_id: user.id, topic_id }))
+        )
+      }
+    }
+
+    return NextResponse.json({ profile: data })
   }
 
-  return NextResponse.json({ profile: data })
+  // Only relational data being updated (no profile fields)
+  if ('languages' in body && Array.isArray(body.languages)) {
+    await supabase.from('user_languages').delete().eq('user_id', user.id)
+    if (body.languages.length > 0) {
+      await supabase.from('user_languages').insert(
+        body.languages.map((l: { language_id: number; proficiency: string }) => ({
+          user_id: user.id,
+          language_id: l.language_id,
+          proficiency: l.proficiency,
+        }))
+      )
+    }
+  }
+
+  if ('goals' in body && Array.isArray(body.goals)) {
+    await supabase.from('user_goals').delete().eq('user_id', user.id)
+    if (body.goals.length > 0) {
+      await supabase.from('user_goals').insert(
+        (body.goals as string[]).map((goal) => ({ user_id: user.id, goal }))
+      )
+    }
+  }
+
+  if ('interests' in body && Array.isArray(body.interests)) {
+    await supabase.from('user_interests').delete().eq('user_id', user.id)
+    if (body.interests.length > 0) {
+      await supabase.from('user_interests').insert(
+        (body.interests as number[]).map((topic_id) => ({ user_id: user.id, topic_id }))
+      )
+    }
+  }
+
+  return NextResponse.json({ ok: true })
 }
