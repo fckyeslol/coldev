@@ -1,26 +1,232 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg:           #FFFBF5;
+  --bg-secondary: #F5F1E8;
+  --bg-card:      #FFFFFF;
+  --bg-hover:     #FAF6EF;
+  --border:       #E8E2D8;
+  --border-hover: #D4C9B8;
+  --text:         #2D2621;
+  --text-muted:   #8B8480;
+  --text-dim:     #C5BFB8;
+  --accent:       #E87952;
+  --accent-dark:  #D96B47;
+  --accent-glow:  rgba(232, 121, 82, 0.12);
+  --accent-light: #FDF0EB;
+  --yellow:       #F4A847;
+  --yellow-light: #FEF6E8;
+  --green:        #8BA888;
+  --green-light:  #EEF4ED;
+  --shadow-sm: 0 1px 3px rgba(180,140,110,0.10);
+  --shadow-md: 0 2px 8px rgba(180,140,110,0.14);
+  --shadow-lg: 0 4px 20px rgba(180,140,110,0.18);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: #FFFBF5;
+  color: #2D2621;
+  font-family: 'Plus Jakarta Sans', 'DM Sans', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #D4C9B8; border-radius: 4px; }
+::selection { background: rgba(232,121,82,0.15); color: #D96B47; }
+:focus-visible { outline: 2px solid #E87952; outline-offset: 2px; border-radius: 6px; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-fade-in { animation: fadeIn 0.25s ease forwards; }
+
+.skeleton {
+  background: linear-gradient(90deg, #F5F1E8 25%, #E8E2D8 50%, #F5F1E8 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 8px;
+}
+
+.card {
+  background: #FFFFFF;
+  border: 1.5px solid #E8E2D8;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(180,140,110,0.10);
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+.card:hover {
+  border-color: #D4C9B8;
+  box-shadow: 0 2px 8px rgba(180,140,110,0.14);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+  font-family: inherit;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: #E87952;
+  color: white;
+  box-shadow: 0 2px 8px rgba(232,121,82,0.25);
+}
+.btn-primary:hover {
+  background: #D96B47;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(232,121,82,0.32);
+}
+.btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  background: #FFFFFF;
+  color: #2D2621;
+  border: 1.5px solid #E8E2D8;
+}
+.btn-secondary:hover {
+  border-color: #E87952;
+  color: #E87952;
+  background: #FDF0EB;
+}
+
+.input {
+  width: 100%;
+  background: #FFFFFF;
+  border: 1.5px solid #E8E2D8;
+  border-radius: 12px;
+  padding: 11px 16px;
+  color: #2D2621;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+}
+.input:focus {
+  border-color: #E87952;
+  box-shadow: 0 0 0 3px rgba(232,121,82,0.12);
+}
+.input::placeholder { color: #C5BFB8; }
+
+/* ─── Responsive layout ─────────────────────────────────────── */
+
+.layout-root {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar wrapper takes up flex space so fixed <aside> doesn't overlap main */
+.layout-sidebar {
+  width: 256px;
+  flex-shrink: 0;
+}
+
+.layout-main {
+  flex: 1;
+  max-width: 600px;
+  min-width: 0;
+}
+
+.layout-aside {
+  width: 320px;
+  flex-shrink: 0;
+}
+
+/* Mobile bottom nav — hidden on desktop */
+.mobile-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .layout-sidebar {
+    display: none;
+  }
+
+  /* The fixed <aside> must also be hidden — wrapper display:none doesn't affect fixed children */
+  .sidebar-fixed {
+    display: none !important;
+  }
+
+  .layout-main {
+    max-width: 100%;
+    padding-bottom: 68px; /* space for bottom nav */
+  }
+
+  .layout-aside {
+    display: none;
+  }
+
+  .mobile-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    z-index: 50;
+    background: #FFFFFF;
+    border-top: 1.5px solid #E8E2D8;
+    align-items: stretch;
+    justify-content: space-around;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .mobile-nav a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    flex: 1;
+    text-decoration: none;
+    color: #8B8480;
+    font-size: 10px;
+    font-weight: 600;
+    transition: color 0.15s;
+    padding: 6px 4px;
+  }
+
+  .mobile-nav a.active {
+    color: #E87952;
+  }
+
+  .mobile-nav a .nav-icon {
+    font-size: 20px;
+    line-height: 1;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Tablet: narrower sidebar, hide aside */
+@media (min-width: 769px) and (max-width: 1100px) {
+  .layout-aside {
+    display: none;
+  }
+
+  .layout-main {
+    max-width: 100%;
+  }
 }
