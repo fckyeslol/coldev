@@ -2,14 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { IconHome, IconSearch, IconGlobe, IconMessage, IconUser } from './Icons'
+import { IconHome, IconSearch, IconForum, IconMessage, IconUser } from './Icons'
 
 const NAV = [
-  { href: '/feed',     label: 'Feed',     Icon: IconHome    },
-  { href: '/explore',  label: 'Buscar',   Icon: IconSearch  },
-  { href: '/conectar', label: 'Conectar', Icon: IconGlobe   },
-  { href: '/mensajes', label: 'Inbox',    Icon: IconMessage },
-  { href: '/perfil/me',label: 'Perfil',   Icon: IconUser    },
+  { href: '/feed',     label: 'Feed',   Icon: IconHome    },
+  { href: '/explore',  label: 'Buscar', Icon: IconSearch  },
+  { href: '/foros',    label: 'Foros',  Icon: IconForum   },
+  { href: '/mensajes', label: 'Inbox',  Icon: IconMessage },
+  { href: '/perfil/me',label: 'Perfil', Icon: IconUser    },
 ]
 
 export default function MobileNav() {

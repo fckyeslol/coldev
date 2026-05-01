@@ -73,6 +73,8 @@ export async function GET() {
 
 // POST /api/conversations { username }
 // Opens (or creates) a 1:1 DM with another user. Requires a follow relation in either direction.
+// Atomic: delegates to the start_or_get_dm RPC (SECURITY DEFINER) so the participant
+// insert can't race the conversation INSERT under RLS.
 export async function POST(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -87,55 +89,14 @@ export async function POST(request: Request) {
   if (!target) return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
   if (target.id === user.id) return NextResponse.json({ error: 'No puedes mensajearte a ti mismo' }, { status: 400 })
 
-  // Connection check: at least one of them follows the other.
-  const [{ data: aFollowsB }, { data: bFollowsA }] = await Promise.all([
-    supabase.from('follows').select('follower_id').eq('follower_id', user.id).eq('following_id', target.id).maybeSingle(),
-    supabase.from('follows').select('follower_id').eq('follower_id', target.id).eq('following_id', user.id).maybeSingle(),
-  ])
-  if (!aFollowsB && !bFollowsA) {
-    return NextResponse.json({ error: 'Solo puedes mensajear a devs con los que ya estás conectado' }, { status: 403 })
+  const { data: convId, error } = await supabase
+    .rpc('start_or_get_dm', { target_user_id: target.id })
+
+  if (error) {
+    console.error('start_or_get_dm rpc error:', error)
+    const status = /not authenticated|42501/i.test(error.message) ? 403 : 500
+    return NextResponse.json({ error: error.message }, { status })
   }
 
-  // Try to find an existing 1:1 conversation.
-  const { data: myRows } = await supabase
-    .from('conversation_participants')
-    .select('conversation_id')
-    .eq('user_id', user.id)
-
-  const myConvIds = (myRows ?? []).map((r) => r.conversation_id)
-
-  if (myConvIds.length > 0) {
-    const { data: shared } = await supabase
-      .from('conversation_participants')
-      .select('conversation_id')
-      .eq('user_id', target.id)
-      .in('conversation_id', myConvIds)
-      .limit(1)
-      .maybeSingle()
-    if (shared) return NextResponse.json({ conversation_id: shared.conversation_id, existed: true })
-  }
-
-  // Create the conversation + insert both participants.
-  const { data: conv, error: convErr } = await supabase
-    .from('conversations')
-    .insert({ created_by: user.id })
-    .select('id')
-    .single()
-  if (convErr || !conv) {
-    console.error('create conversation error:', convErr)
-    return NextResponse.json({ error: convErr?.message ?? 'No se pudo crear la conversación' }, { status: 500 })
-  }
-
-  const { error: partErr } = await supabase
-    .from('conversation_participants')
-    .insert([
-      { conversation_id: conv.id, user_id: user.id },
-      { conversation_id: conv.id, user_id: target.id },
-    ])
-  if (partErr) {
-    console.error('add participants error:', partErr)
-    return NextResponse.json({ error: partErr.message }, { status: 500 })
-  }
-
-  return NextResponse.json({ conversation_id: conv.id, existed: false })
+  return NextResponse.json({ conversation_id: convId })
 }

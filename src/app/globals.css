@@ -146,14 +146,17 @@ html, body {
 }
 
 .layout-main {
-  flex: 1;
-  max-width: 600px;
+  flex: 0 1 640px;
+  max-width: 640px;
   min-width: 0;
+  margin-left: auto;
+  border-right: 1.5px solid #E8E2D8;
 }
 
 .layout-aside {
-  width: 320px;
+  width: 340px;
   flex-shrink: 0;
+  margin-right: auto;
 }
 
 /* Mobile bottom nav — hidden on desktop */

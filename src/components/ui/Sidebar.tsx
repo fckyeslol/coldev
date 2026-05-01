@@ -5,12 +5,13 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import type { Profile } from '@/types'
 import Avatar from './Avatar'
-import { IconHome, IconSearch, IconGlobe, IconBell, IconEdit, IconMessage } from './Icons'
+import { IconHome, IconSearch, IconGlobe, IconBell, IconEdit, IconMessage, IconForum } from './Icons'
 
 const NAV = [
   { href: '/feed',           label: 'Feed',           Icon: IconHome    },
   { href: '/explore',        label: 'Explorar',       Icon: IconSearch  },
-  { href: '/conectar',       label: 'Conectar',       Icon: IconGlobe, badge: 'NUEVO' },
+  { href: '/foros',          label: 'Foros',          Icon: IconForum, badge: 'NUEVO' },
+  { href: '/conectar',       label: 'Conectar',       Icon: IconGlobe   },
   { href: '/mensajes',       label: 'Mensajes',       Icon: IconMessage },
   { href: '/notificaciones', label: 'Notificaciones', Icon: IconBell    },
 ] as const

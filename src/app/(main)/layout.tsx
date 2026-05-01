@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Sidebar from '@/components/ui/Sidebar'
 import MobileNav from '@/components/ui/MobileNav'
+import RightAside from '@/components/ui/RightAside'
 import type { Profile } from '@/types'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
@@ -25,7 +26,9 @@ export default async function MainLayout({ children }: { children: React.ReactNo
       <main className="layout-main">
         {children}
       </main>
-      <div className="layout-aside" />
+      <div className="layout-aside">
+        <RightAside />
+      </div>
       <MobileNav />
     </div>
   )
