@@ -129,7 +129,6 @@ export default function ProfileClient({ profile, isOwnProfile, initiallyFollowin
           )}
         </div>
 
-<<<<<<< HEAD
         {/* Name + username */}
         <div className="mb-3">
           <div className="flex items-center gap-2 flex-wrap mb-0.5">
@@ -141,7 +140,8 @@ export default function ProfileClient({ profile, isOwnProfile, initiallyFollowin
             )}
           </div>
           <p className="text-[var(--text-muted)] text-[14px]">@{profile.username}</p>
-=======
+          </div>
+
         {connectError && (
           <div style={{
             marginBottom: 12, padding: '8px 12px', borderRadius: 10, fontSize: 13,
@@ -173,7 +173,7 @@ export default function ProfileClient({ profile, isOwnProfile, initiallyFollowin
               🔗 Web
             </a>
           )}
->>>>>>> 82dd61a (major changes)
+
         </div>
 
         {/* Bio */}
