@@ -6,6 +6,8 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const cursor = searchParams.get('cursor')
     const userId = searchParams.get('userId')
+    const feed = searchParams.get('feed') // 'following' | null
+    const q = searchParams.get('q')?.trim()
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -24,6 +26,16 @@ export async function GET(request: Request) {
 
     if (userId) query = query.eq('user_id', userId)
     if (cursor) query = query.lt('created_at', cursor)
+    if (q) query = query.ilike('content', `%${q.replace(/[%_]/g, '\\$&')}%`)
+
+    if (feed === 'following') {
+      if (!user) return NextResponse.json({ posts: [] })
+      const { data: follows } = await supabase
+        .from('follows').select('following_id').eq('follower_id', user.id)
+      const ids = (follows ?? []).map((f) => f.following_id)
+      if (ids.length === 0) return NextResponse.json({ posts: [] })
+      query = query.in('user_id', ids)
+    }
 
     const { data: posts, error } = await query
 

@@ -5,27 +5,48 @@ import type { Post, Profile } from '@/types'
 import PostCard from '@/components/feed/PostCard'
 import ComposeBox from '@/components/feed/ComposeBox'
 
+type FeedTab = 'all' | 'following'
+
 export default function FeedClient({ profile }: { profile: Profile }) {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(true)
   const [cursor, setCursor] = useState<string | null>(null)
+  const [tab, setTab] = useState<FeedTab>('all')
+  const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
 
-  const fetchPosts = useCallback(async (c?: string) => {
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 300)
+    return () => clearTimeout(t)
+  }, [search])
+
+  const fetchPosts = useCallback(async (c?: string, opts?: { tab: FeedTab; q: string }) => {
+    const params = new URLSearchParams()
+    if (c) params.set('cursor', c)
+    if (opts?.tab === 'following') params.set('feed', 'following')
+    if (opts?.q) params.set('q', opts.q)
     try {
-      const res = await fetch(c ? `/api/posts?cursor=${c}` : '/api/posts')
+      const res = await fetch(`/api/posts${params.toString() ? `?${params}` : ''}`)
       if (!res.ok) { setError('No se pudieron cargar los posts'); return }
       const { posts: newPosts } = await res.json()
       if (!Array.isArray(newPosts)) { setError('Error inesperado'); return }
-      if (newPosts.length < 20) setHasMore(false)
+      if (newPosts.length < 20) setHasMore(false); else setHasMore(true)
       setPosts(prev => c ? [...prev, ...newPosts] : newPosts)
       if (newPosts.length > 0) setCursor(newPosts[newPosts.length - 1].created_at)
+      else setCursor(null)
+      setError(null)
     } catch { setError('Error de conexión') }
     finally { setLoading(false) }
   }, [])
 
-  useEffect(() => { fetchPosts() }, [fetchPosts])
+  useEffect(() => {
+    setLoading(true)
+    setHasMore(true)
+    setCursor(null)
+    fetchPosts(undefined, { tab, q: debouncedSearch })
+  }, [tab, debouncedSearch, fetchPosts])
 
   const handleNewPost = (post: Post) => setPosts(prev => [post, ...prev])
   const handleLike = (postId: string, liked: boolean) =>
@@ -55,17 +76,35 @@ export default function FeedClient({ profile }: { profile: Profile }) {
 
       <ComposeBox profile={profile} onPost={handleNewPost} />
 
+      {/* Search filter */}
+      <div style={{ padding: '10px 16px', background: 'var(--bg-card)', borderBottom: '1.5px solid var(--border)' }}>
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="input"
+          placeholder="Filtrar el feed por contenido..."
+          style={{ fontSize: 13, padding: '8px 14px' }}
+        />
+      </div>
+
       {/* Tabs */}
       <div style={{ display: 'flex', borderBottom: '1.5px solid var(--border)', background: 'var(--bg-card)' }}>
-        {['Para ti', 'Siguiendo'].map((tab, i) => (
-          <button key={tab} style={{
-            flex: 1, padding: '13px 0', fontSize: 14, fontWeight: i === 0 ? 700 : 500,
-            background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-            color: i === 0 ? 'var(--accent-dark)' : 'var(--text-muted)',
-            borderBottom: i === 0 ? '2.5px solid var(--accent)' : '2.5px solid transparent',
-            transition: 'all 0.15s',
-          }}>{tab}</button>
-        ))}
+        {([
+          { key: 'all', label: 'Para ti' },
+          { key: 'following', label: 'Siguiendo' },
+        ] as const).map(({ key, label }) => {
+          const active = tab === key
+          return (
+            <button key={key} onClick={() => setTab(key)} style={{
+              flex: 1, padding: '13px 0', fontSize: 14, fontWeight: active ? 700 : 500,
+              background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+              color: active ? 'var(--accent-dark)' : 'var(--text-muted)',
+              borderBottom: active ? '2.5px solid var(--accent)' : '2.5px solid transparent',
+              transition: 'all 0.15s',
+            }}>{label}</button>
+          )
+        })}
       </div>
 
       {/* Error */}
@@ -97,12 +136,22 @@ export default function FeedClient({ profile }: { profile: Profile }) {
       {/* Empty */}
       {!loading && !error && posts.length === 0 && (
         <div style={{ textAlign: 'center', padding: '64px 32px' }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>✍️</div>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>
+            {debouncedSearch ? '🔍' : tab === 'following' ? '👥' : '✍️'}
+          </div>
           <p style={{ fontWeight: 700, fontSize: 16, margin: 0, color: 'var(--text)' }}>
-            ¡Sé el primero en publicar!
+            {debouncedSearch
+              ? 'Sin resultados'
+              : tab === 'following'
+                ? 'Aún no sigues a nadie'
+                : '¡Sé el primero en publicar!'}
           </p>
           <p style={{ fontSize: 14, marginTop: 8, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-            Comparte qué estás aprendiendo,<br />una duda, o un logro 🚀
+            {debouncedSearch
+              ? `Probaste con "${debouncedSearch}". Cambia el filtro o vuelve a "Para ti".`
+              : tab === 'following'
+                ? 'Encuentra devs en Explorar para llenar tu feed.'
+                : 'Comparte qué estás aprendiendo, una duda, o un logro 🚀'}
           </p>
         </div>
       )}
@@ -114,7 +163,11 @@ export default function FeedClient({ profile }: { profile: Profile }) {
 
       {!loading && !error && hasMore && posts.length > 0 && (
         <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}>
-          <button onClick={() => fetchPosts(cursor ?? undefined)} className="btn btn-secondary" style={{ fontSize: 13 }}>
+          <button
+            onClick={() => fetchPosts(cursor ?? undefined, { tab, q: debouncedSearch })}
+            className="btn btn-secondary"
+            style={{ fontSize: 13 }}
+          >
             Cargar más
           </button>
         </div>

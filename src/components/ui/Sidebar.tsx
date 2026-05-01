@@ -5,13 +5,14 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import type { Profile } from '@/types'
 import Avatar from './Avatar'
-import { IconHome, IconSearch, IconGlobe, IconBell, IconEdit } from './Icons'
+import { IconHome, IconSearch, IconGlobe, IconBell, IconEdit, IconMessage } from './Icons'
 
 const NAV = [
-  { href: '/feed',           label: 'Feed',           Icon: IconHome  },
-  { href: '/explore',        label: 'Explorar',       Icon: IconSearch },
+  { href: '/feed',           label: 'Feed',           Icon: IconHome    },
+  { href: '/explore',        label: 'Explorar',       Icon: IconSearch  },
   { href: '/conectar',       label: 'Conectar',       Icon: IconGlobe, badge: 'NUEVO' },
-  { href: '/notificaciones', label: 'Notificaciones', Icon: IconBell  },
+  { href: '/mensajes',       label: 'Mensajes',       Icon: IconMessage },
+  { href: '/notificaciones', label: 'Notificaciones', Icon: IconBell    },
 ] as const
 
 export default function Sidebar({ profile }: { profile: Profile | null }) {

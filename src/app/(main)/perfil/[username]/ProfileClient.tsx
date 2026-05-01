@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import type { Post, Profile } from '@/types'
 import { GOAL_ICONS, GOAL_LABELS, LEVEL_LABELS } from '@/types'
 import Avatar from '@/components/ui/Avatar'
@@ -17,15 +18,44 @@ interface Props {
   }
   isOwnProfile: boolean
   initiallyFollowing: boolean
+  isConnected?: boolean
 }
 
-export default function ProfileClient({ profile, isOwnProfile, initiallyFollowing }: Props) {
+export default function ProfileClient({ profile, isOwnProfile, initiallyFollowing, isConnected = false }: Props) {
+  const router = useRouter()
   const [following, setFollowing] = useState(initiallyFollowing)
   const [followersCount, setFollowersCount] = useState(profile.followers_count)
   const [followLoading, setFollowLoading] = useState(false)
   const [posts, setPosts] = useState<Post[]>([])
   const [postsLoading, setPostsLoading] = useState(true)
   const [editing, setEditing] = useState(false)
+  const [messageLoading, setMessageLoading] = useState(false)
+  const [connectError, setConnectError] = useState<string | null>(null)
+
+  const canMessage = isConnected || following
+
+  async function handleMessage() {
+    if (messageLoading) return
+    setMessageLoading(true)
+    setConnectError(null)
+    try {
+      const res = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: profile.username }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setConnectError(data?.error ?? 'No se pudo abrir el chat')
+        return
+      }
+      router.push(`/mensajes/${data.conversation_id}`)
+    } catch {
+      setConnectError('Error de conexión')
+    } finally {
+      setMessageLoading(false)
+    }
+  }
 
   useEffect(() => {
     fetch(`/api/posts?userId=${profile.id}`)
@@ -78,15 +108,28 @@ export default function ProfileClient({ profile, isOwnProfile, initiallyFollowin
               Editar perfil
             </button>
           ) : (
-            <button
-              onClick={handleFollow}
-              className={`btn text-sm py-2 flex-shrink-0 ${following ? 'btn-secondary' : 'btn-primary'}`}
-            >
-              {followLoading ? '...' : following ? '✓ Siguiendo' : '+ Conectar'}
-            </button>
+            <div className="flex gap-2 flex-shrink-0">
+              {canMessage && (
+                <button
+                  onClick={handleMessage}
+                  disabled={messageLoading}
+                  className="btn btn-secondary text-sm py-2"
+                  aria-label="Enviar mensaje"
+                >
+                  💬 {messageLoading ? '...' : 'Mensaje'}
+                </button>
+              )}
+              <button
+                onClick={handleFollow}
+                className={`btn text-sm py-2 ${following ? 'btn-secondary' : 'btn-primary'}`}
+              >
+                {followLoading ? '...' : following ? '✓ Siguiendo' : '+ Conectar'}
+              </button>
+            </div>
           )}
         </div>
 
+<<<<<<< HEAD
         {/* Name + username */}
         <div className="mb-3">
           <div className="flex items-center gap-2 flex-wrap mb-0.5">
@@ -98,6 +141,39 @@ export default function ProfileClient({ profile, isOwnProfile, initiallyFollowin
             )}
           </div>
           <p className="text-[var(--text-muted)] text-[14px]">@{profile.username}</p>
+=======
+        {connectError && (
+          <div style={{
+            marginBottom: 12, padding: '8px 12px', borderRadius: 10, fontSize: 13,
+            background: '#FEF2F0', border: '1.5px solid #FCCFBF', color: '#C65D3B',
+          }}>{connectError}</div>
+        )}
+
+        {/* Meta row */}
+        <div className="flex items-center gap-2 mb-3 text-xs text-[var(--text-muted)] flex-wrap">
+          <span>📍 {profile.city}</span>
+          <span className="px-2 py-0.5 rounded-md bg-[var(--bg-hover)] border border-[var(--border)] font-medium">
+            {LEVEL_LABELS[profile.level]}
+          </span>
+          {profile.github_url && (
+            <a href={profile.github_url} target="_blank" rel="noopener"
+              className="hover:text-[var(--text)] flex items-center gap-1">
+              🐙 GitHub
+            </a>
+          )}
+          {profile.linkedin_url && (
+            <a href={profile.linkedin_url} target="_blank" rel="noopener"
+              className="hover:text-[var(--text)] flex items-center gap-1">
+              💼 LinkedIn
+            </a>
+          )}
+          {profile.website_url && (
+            <a href={profile.website_url} target="_blank" rel="noopener"
+              className="hover:text-[var(--text)] flex items-center gap-1">
+              🔗 Web
+            </a>
+          )}
+>>>>>>> 82dd61a (major changes)
         </div>
 
         {/* Bio */}

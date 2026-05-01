@@ -2,14 +2,17 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import type { MatchedProfile } from '@/types'
 import { LEVEL_LABELS } from '@/types'
 import Avatar from '@/components/ui/Avatar'
 import MatchRing from '@/components/ui/MatchRing'
 
 export default function DevCard({ dev }: { dev: MatchedProfile }) {
+  const router = useRouter()
   const [following, setFollowing] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [messaging, setMessaging] = useState(false)
 
   async function handleFollow(e: React.MouseEvent) {
     e.preventDefault()
@@ -19,6 +22,21 @@ export default function DevCard({ dev }: { dev: MatchedProfile }) {
       const res = await fetch(`/api/users/${dev.username}/follow`, { method: 'POST' })
       if (res.ok) setFollowing(f => !f)
     } finally { setLoading(false) }
+  }
+
+  async function handleMessage(e: React.MouseEvent) {
+    e.preventDefault()
+    if (messaging) return
+    setMessaging(true)
+    try {
+      const res = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: dev.username }),
+      })
+      const data = await res.json()
+      if (res.ok) router.push(`/mensajes/${data.conversation_id}`)
+    } finally { setMessaging(false) }
   }
 
   const langs = dev.user_languages ?? []
@@ -107,10 +125,12 @@ export default function DevCard({ dev }: { dev: MatchedProfile }) {
             style={{ flex: 1, fontSize: 13, padding: '8px 0' }}>
             {loading ? '...' : following ? '✓ Siguiendo' : '+ Conectar'}
           </button>
-          <button onClick={e => e.preventDefault()} className="btn btn-secondary"
-            style={{ fontSize: 13, padding: '8px 16px' }}>
-            💬 Mensaje
-          </button>
+          {following && (
+            <button onClick={handleMessage} disabled={messaging} className="btn btn-secondary"
+              style={{ fontSize: 13, padding: '8px 16px' }}>
+              💬 {messaging ? '...' : 'Mensaje'}
+            </button>
+          )}
         </div>
       </div>
     </Link>

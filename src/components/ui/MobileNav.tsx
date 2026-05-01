@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { IconHome, IconSearch, IconGlobe, IconBell } from './Icons'
+import { IconHome, IconSearch, IconGlobe, IconMessage, IconUser } from './Icons'
 
 const NAV = [
-  { href: '/feed',           label: 'Feed',     Icon: IconHome   },
-  { href: '/explore',        label: 'Buscar',   Icon: IconSearch },
-  { href: '/conectar',       label: 'Conectar', Icon: IconGlobe  },
-  { href: '/notificaciones', label: 'Alertas',  Icon: IconBell   },
+  { href: '/feed',     label: 'Feed',     Icon: IconHome    },
+  { href: '/explore',  label: 'Buscar',   Icon: IconSearch  },
+  { href: '/conectar', label: 'Conectar', Icon: IconGlobe   },
+  { href: '/mensajes', label: 'Inbox',    Icon: IconMessage },
+  { href: '/perfil/me',label: 'Perfil',   Icon: IconUser    },
 ]
 
 export default function MobileNav() {
@@ -17,10 +18,13 @@ export default function MobileNav() {
   return (
     <nav className="mobile-nav">
       {NAV.map(({ href, label, Icon }) => {
-        const active = pathname === href || pathname.startsWith(href + '/')
+        const isPerfil = href === '/perfil/me'
+        const active = isPerfil
+          ? pathname === '/perfil/me' || pathname.startsWith('/perfil/')
+          : pathname === href || pathname.startsWith(href + '/')
         return (
           <Link key={href} href={href} className={active ? 'active' : ''}>
-            <Icon size={22} />
+            <span className="nav-icon"><Icon size={22} /></span>
             {label}
           </Link>
         )

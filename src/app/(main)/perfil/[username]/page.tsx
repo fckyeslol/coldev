@@ -30,6 +30,7 @@ export default async function ProfilePage({ params }: Props) {
     { count: followingCount },
     { count: postsCount },
     isFollowingData,
+    isFollowedByData,
   ] = await Promise.all([
     supabase
       .from('user_languages')
@@ -51,7 +52,18 @@ export default async function ProfilePage({ params }: Props) {
           .eq('following_id', profile.id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
+    currentUser
+      ? supabase
+          .from('follows')
+          .select('follower_id')
+          .eq('follower_id', profile.id)
+          .eq('following_id', currentUser.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ])
+
+  const initiallyFollowing = !!isFollowingData.data
+  const isConnected = initiallyFollowing || !!isFollowedByData.data
 
   return (
     <ProfileClient
@@ -65,7 +77,8 @@ export default async function ProfilePage({ params }: Props) {
         posts_count: postsCount ?? 0,
       }}
       isOwnProfile={currentUser?.id === profile.id}
-      initiallyFollowing={!!isFollowingData.data}
+      initiallyFollowing={initiallyFollowing}
+      isConnected={isConnected}
     />
   )
 }
