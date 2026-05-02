@@ -109,7 +109,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'La encuesta requiere al menos 2 opciones' }, { status: 400 })
       }
       const { data: id, error: rpcErr } = await supabase.rpc('create_post_with_poll', {
-        p_content: content.trim(),
+        p_content: content?.trim() ?? '',
         p_language_tags: language_tags ?? [],
         p_topic_tags: topic_tags ?? [],
         p_image_url: image_url ?? null,
