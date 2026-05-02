@@ -51,19 +51,22 @@ export async function GET(request: Request) {
     if (user && posts && posts.length > 0) {
       const postIds = posts.map((p) => p.id)
       const pollIds = posts.flatMap((p) => p.poll?.id ? [p.poll.id] : [])
-      const [{ data: likes }, { data: reposts }, { data: polls }] = await Promise.all([
+      const [{ data: likes }, { data: reposts }, { data: bookmarksData }, { data: polls }] = await Promise.all([
         supabase.from('post_likes').select('post_id').eq('user_id', user.id).in('post_id', postIds),
         supabase.from('post_reposts').select('post_id').eq('user_id', user.id).in('post_id', postIds),
+        supabase.from('bookmarks').select('target_id').eq('user_id', user.id).eq('target_type', 'post').in('target_id', postIds),
         pollIds.length > 0
           ? supabase.from('poll_votes').select('poll_id, option_id').eq('user_id', user.id).in('poll_id', pollIds)
           : Promise.resolve({ data: [] as { poll_id: string; option_id: string }[] }),
       ])
       const likedSet = new Set(likes?.map((l) => l.post_id) ?? [])
       const repostedSet = new Set(reposts?.map((r) => r.post_id) ?? [])
+      const bookmarkedSet = new Set(bookmarksData?.map((b) => b.target_id) ?? [])
       const myVoteByPoll = new Map(((polls ?? []) as { poll_id: string; option_id: string }[]).map((v) => [v.poll_id, v.option_id]))
       posts.forEach((p) => {
         p.has_liked = likedSet.has(p.id)
         p.has_reposted = repostedSet.has(p.id)
+        p.has_bookmarked = bookmarkedSet.has(p.id)
         if (p.poll?.id) p.poll.my_vote = myVoteByPoll.get(p.poll.id) ?? null
       })
     }
@@ -89,8 +92,9 @@ export async function POST(request: Request) {
       image_url?: string | null
       poll?: { question: string; options: string[] } | null
     }
-    if (!content?.trim()) return NextResponse.json({ error: 'Content required' }, { status: 400 })
-    if (content.length > 280) return NextResponse.json({ error: 'Too long' }, { status: 400 })
+    // Allow image/video-only posts (empty text)
+    if (!content?.trim() && !image_url) return NextResponse.json({ error: 'Content required' }, { status: 400 })
+    if ((content ?? '').length > 280) return NextResponse.json({ error: 'Too long' }, { status: 400 })
 
     let createdId: string | null = null
     let postRow: Record<string, unknown> | null = null
@@ -122,7 +126,7 @@ export async function POST(request: Request) {
         .from('posts')
         .insert({
           user_id: user.id,
-          content: content.trim(),
+          content: content?.trim() ?? '',
           language_tags: language_tags ?? [],
           topic_tags: topic_tags ?? [],
           parent_id: parent_id ?? null,

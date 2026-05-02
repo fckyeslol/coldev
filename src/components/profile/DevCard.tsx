@@ -89,17 +89,18 @@ export default function DevCard({ dev }: { dev: MatchedProfile }) {
 
             {langs.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
-                {langs.slice(0, 4).map(({ language }) => (
+                {langs.filter(l => l.language).slice(0, 4).map(({ language }) => (
                   <span key={language.id} style={{
                     fontSize: 11, padding: '2px 10px', borderRadius: 999, fontWeight: 600,
-                    color: language.color, border: `1.5px solid ${language.color}50`,
-                    background: `${language.color}12`,
+                    color: language.color ?? 'var(--text-muted)',
+                    border: `1.5px solid ${language.color ?? '#ccc'}50`,
+                    background: `${language.color ?? '#ccc'}12`,
                   }}>
                     {language.name}
                   </span>
                 ))}
-                {langs.length > 4 && (
-                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>+{langs.length - 4}</span>
+                {langs.filter(l => l.language).length > 4 && (
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>+{langs.filter(l => l.language).length - 4}</span>
                 )}
               </div>
             )}

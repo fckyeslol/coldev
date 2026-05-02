@@ -27,10 +27,11 @@ export default function ComposeBox({ profile, onPost }: Props) {
   const [loading, setLoading] = useState(false)
   const [focused, setFocused] = useState(false)
 
-  // Image upload state
+  // Media upload state
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [mediaFile, setMediaFile] = useState<File | null>(null)
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null)
+  const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null)
   const [imageUploading, setImageUploading] = useState(false)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [imageError, setImageError] = useState('')
@@ -45,7 +46,7 @@ export default function ComposeBox({ profile, onPost }: Props) {
   const [pollOptions, setPollOptions] = useState<string[]>(['', ''])
 
   const remaining = 280 - content.length
-  const canPost = content.trim().length > 0 && !loading && !imageUploading
+  const canPost = (content.trim().length > 0 || imageUrl) && !loading && !imageUploading
 
   function toggleLang(id: number) {
     setSelectedLangs(p => p.includes(id) ? p.filter(l => l !== id) : [...p, id])
@@ -60,14 +61,17 @@ export default function ComposeBox({ profile, onPost }: Props) {
     if (!file) return
 
     setImageError('')
-    if (!file.type.startsWith('image/')) { setImageError('Solo se permiten imágenes'); return }
-    if (file.size > 5 * 1024 * 1024) { setImageError('Máximo 5MB'); return }
+    const isVideo = file.type.startsWith('video/')
+    const isImage = file.type.startsWith('image/')
+    if (!isImage && !isVideo) { setImageError('Solo imágenes o videos'); return }
+    if (isImage && file.size > 10 * 1024 * 1024) { setImageError('Máximo 10MB para imágenes'); return }
+    if (isVideo && file.size > 100 * 1024 * 1024) { setImageError('Máximo 100MB para videos'); return }
 
     // Preview
-    setImageFile(file)
-    const reader = new FileReader()
-    reader.onload = ev => setImagePreview(ev.target?.result as string)
-    reader.readAsDataURL(file)
+    setMediaFile(file)
+    setMediaType(isVideo ? 'video' : 'image')
+    const objectUrl = URL.createObjectURL(file)
+    setMediaPreview(objectUrl)
 
     // Upload immediately
     setImageUploading(true)
@@ -76,21 +80,22 @@ export default function ComposeBox({ profile, onPost }: Props) {
       fd.append('file', file)
       const res = await fetch('/api/upload', { method: 'POST', body: fd })
       const data = await res.json()
-      if (!res.ok) { setImageError(data.error ?? 'Error al subir imagen'); removeImage(); return }
+      if (!res.ok) { setImageError(data.error ?? 'Error al subir archivo'); removeImage(); return }
       setImageUrl(data.url)
     } catch {
-      setImageError('Error de conexión al subir imagen')
+      setImageError('Error de conexión al subir')
       removeImage()
     } finally {
       setImageUploading(false)
     }
-    // Reset input so the same file can be reselected
     e.target.value = ''
   }
 
   function removeImage() {
-    setImageFile(null)
-    setImagePreview(null)
+    if (mediaPreview) URL.revokeObjectURL(mediaPreview)
+    setMediaFile(null)
+    setMediaPreview(null)
+    setMediaType(null)
     setImageUrl(null)
     setImageError('')
     setImageUploading(false)
@@ -224,18 +229,27 @@ export default function ComposeBox({ profile, onPost }: Props) {
             </div>
           )}
 
-          {/* Image preview */}
-          {imagePreview && (
+          {/* Media preview */}
+          {mediaPreview && (
             <div style={{ position: 'relative', marginBottom: 12, borderRadius: 12, overflow: 'hidden', border: '1.5px solid var(--border)' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={imagePreview} alt="Preview" style={{ width: '100%', maxHeight: 280, objectFit: 'cover', display: 'block' }} />
+              {mediaType === 'video' ? (
+                <video
+                  src={mediaPreview}
+                  controls
+                  style={{ width: '100%', maxHeight: 300, display: 'block', background: '#000' }}
+                />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={mediaPreview} alt="Preview" style={{ width: '100%', maxHeight: 280, objectFit: 'cover', display: 'block' }} />
+              )}
               {imageUploading && (
                 <div style={{
-                  position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)',
+                  position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'white', fontSize: 13, fontWeight: 600,
+                  color: 'white', fontSize: 13, fontWeight: 600, gap: 8,
                 }}>
-                  Subiendo...
+                  <span style={{ width: 16, height: 16, border: '2px solid white', borderTopColor: 'transparent', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
+                  Subiendo{mediaType === 'video' ? ' video' : ''}...
                 </div>
               )}
               <button
@@ -339,15 +353,15 @@ export default function ComposeBox({ profile, onPost }: Props) {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/png,image/gif,image/webp"
+                accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime,video/ogg"
                 style={{ display: 'none' }}
                 onChange={handleImageSelect}
               />
               <ToolBtn
                 icon={<IconImage size={18} />}
-                label="Imagen"
+                label="Imagen o video"
                 onClick={handleImageClick}
-                active={!!imagePreview}
+                active={!!mediaPreview}
               />
               {/* Poll */}
               <ToolBtn
@@ -384,7 +398,7 @@ export default function ComposeBox({ profile, onPost }: Props) {
                   cursor: canPost ? 'pointer' : 'not-allowed',
                 }}
               >
-                {loading ? '...' : imageUploading ? 'Subiendo...' : 'Publicar'}
+                {loading ? '...' : imageUploading ? (mediaType === 'video' ? 'Subiendo video...' : 'Subiendo...') : 'Publicar'}
               </button>
             </div>
           </div>

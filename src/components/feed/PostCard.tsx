@@ -183,7 +183,7 @@ export default function PostCard({ post, onLike, isComment = false, initialOpenC
   const [showComments, setShowComments] = useState(initialOpenComments)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
-  const [bookmarked, setBookmarked] = useState(false)
+  const [bookmarked, setBookmarked] = useState(post.has_bookmarked ?? false)
 
   async function handleLike() {
     if (actionLoading) return
@@ -286,15 +286,24 @@ export default function PostCard({ post, onLike, isComment = false, initialOpenC
           {/* Poll */}
           {post.poll && <PollCard poll={post.poll} />}
 
-          {/* Image */}
+          {/* Media (image or video) */}
           {post.image_url && (
             <div style={{ marginTop: 12, borderRadius: 12, overflow: 'hidden', border: '1.5px solid var(--border)' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={post.image_url}
-                alt="Post image"
-                style={{ width: '100%', maxHeight: 400, objectFit: 'cover', display: 'block' }}
-              />
+              {/\.(mp4|webm|ogg|mov|mkv)(\?|$)/i.test(post.image_url) ? (
+                <video
+                  src={post.image_url}
+                  controls
+                  playsInline
+                  style={{ width: '100%', maxHeight: 400, display: 'block', background: '#000' }}
+                />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={post.image_url}
+                  alt="Post image"
+                  style={{ width: '100%', maxHeight: 400, objectFit: 'cover', display: 'block' }}
+                />
+              )}
             </div>
           )}
 

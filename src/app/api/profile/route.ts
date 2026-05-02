@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 
 const ALLOWED_FIELDS = [
   'full_name',
@@ -133,6 +134,13 @@ export async function PATCH(request: Request) {
       profile: savedProfile,
     }, { status: 500 })
   }
+
+  // Bust the cache for any /perfil/[username] page so router.refresh() actually
+  // sees the new langs/goals/interests instead of the stale RSC payload.
+  try {
+    revalidatePath('/perfil/[username]', 'page')
+    revalidatePath('/perfil/me')
+  } catch {}
 
   return NextResponse.json({ profile: savedProfile, ok: true })
 }

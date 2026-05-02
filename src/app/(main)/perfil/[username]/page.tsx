@@ -73,6 +73,11 @@ export default async function ProfilePage({ params }: Props) {
   const goalRows = (userGoalsRes.data ?? []) as { goal: string }[]
   const interestRows = (userInterestsRes.data ?? []) as { topic_id: number }[]
 
+  console.log(`[profile/${username}] raw rows`, {
+    user_id: profile.id,
+    langRows, goalRows, interestRows,
+  })
+
   // Manual join: hydrate language_id → language object, topic_id → topic object.
   const langIds = Array.from(new Set(langRows.map((r) => r.language_id)))
   const topicIds = Array.from(new Set(interestRows.map((r) => r.topic_id)))
@@ -91,6 +96,12 @@ export default async function ProfilePage({ params }: Props) {
 
   const langById = new Map(((languagesRes.data ?? []) as LanguageRow[]).map((l) => [l.id, l]))
   const topicById = new Map(((topicsRes.data ?? []) as TopicRow[]).map((t) => [t.id, t]))
+
+  console.log(`[profile/${username}] joins`, {
+    langIds, topicIds,
+    languages_returned: (languagesRes.data ?? []).length,
+    topics_returned: (topicsRes.data ?? []).length,
+  })
 
   const user_languages = langRows
     .map((r) => {

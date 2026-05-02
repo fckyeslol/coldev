@@ -76,6 +76,7 @@ export interface Post {
   poll?: Poll | null
   has_liked?: boolean
   has_reposted?: boolean
+  has_bookmarked?: boolean
   languages?: Language[]
 }
 

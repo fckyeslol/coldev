@@ -15,17 +15,44 @@ export async function POST(_: Request, { params }: { params: Promise<{ id: strin
     .maybeSingle()
 
   if (existing) {
+    // Un-repost
     await supabase.from('post_reposts').delete().eq('user_id', user.id).eq('post_id', post_id)
+
+    // Decrement reposts_count (floor at 0)
+    const { data: post } = await supabase
+      .from('posts').select('reposts_count').eq('id', post_id).maybeSingle()
+    if (post != null) {
+      await supabase.from('posts')
+        .update({ reposts_count: Math.max(0, (post.reposts_count ?? 1) - 1) })
+        .eq('id', post_id)
+    }
+
     return NextResponse.json({ reposted: false })
   } else {
-    await supabase.from('post_reposts').insert({ user_id: user.id, post_id })
-    const { data: post } = await supabase
-      .from('posts').select('user_id').eq('id', post_id).maybeSingle()
-    if (post && post.user_id !== user.id) {
-      await supabase.from('notifications').insert({
-        user_id: post.user_id, actor_id: user.id, type: 'repost', post_id,
-      })
+    // Repost
+    const { error: insErr } = await supabase
+      .from('post_reposts').insert({ user_id: user.id, post_id })
+    if (insErr) {
+      console.error('repost insert error:', insErr)
+      return NextResponse.json({ error: insErr.message }, { status: 500 })
     }
+
+    // Increment reposts_count
+    const { data: post } = await supabase
+      .from('posts').select('reposts_count, user_id').eq('id', post_id).maybeSingle()
+    if (post != null) {
+      await supabase.from('posts')
+        .update({ reposts_count: (post.reposts_count ?? 0) + 1 })
+        .eq('id', post_id)
+
+      // Notify original author
+      if (post.user_id !== user.id) {
+        await supabase.from('notifications').insert({
+          user_id: post.user_id, actor_id: user.id, type: 'repost', post_id,
+        })
+      }
+    }
+
     return NextResponse.json({ reposted: true })
   }
 }
