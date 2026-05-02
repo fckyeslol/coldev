@@ -77,7 +77,14 @@ export default function ExplorePage() {
         borderBottom: '1.5px solid var(--border)', padding: 16,
         display: 'flex', flexDirection: 'column', gap: 12,
       }}>
-        <h1 style={{ margin: 0, fontSize: 18, fontWeight: 800, letterSpacing: '-0.03em' }}>Buscar 🔍</h1>
+        <div>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text)' }}>
+            Explorar
+          </h1>
+          <p style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>
+            Encuentra devs, posts, lenguajes y ciudades
+          </p>
+        </div>
 
         <input type="search" value={search} onChange={e => setSearch(e.target.value)}
           className="input" placeholder="Busca devs, posts, lenguajes, ciudades..." />
@@ -207,7 +214,6 @@ function DevRow({ profile }: { profile: ProfileWithExtras }) {
 function EmptyResults({ q, kind = 'devs' }: { q: string; kind?: 'devs' | 'posts' }) {
   return (
     <div style={{ textAlign: 'center', padding: '64px 32px' }}>
-      <div style={{ fontSize: 48, marginBottom: 16 }}>{kind === 'posts' ? '📭' : '👾'}</div>
       <p style={{ fontWeight: 700, fontSize: 16, margin: 0 }}>
         {kind === 'posts' ? 'No encontramos posts' : 'No encontramos devs'}
       </p>

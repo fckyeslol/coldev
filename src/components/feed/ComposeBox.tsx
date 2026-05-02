@@ -39,6 +39,11 @@ export default function ComposeBox({ profile, onPost }: Props) {
   const [showLinkInput, setShowLinkInput] = useState(false)
   const [linkValue, setLinkValue] = useState('')
 
+  // Poll state
+  const [showPoll, setShowPoll] = useState(false)
+  const [pollQuestion, setPollQuestion] = useState('')
+  const [pollOptions, setPollOptions] = useState<string[]>(['', ''])
+
   const remaining = 280 - content.length
   const canPost = content.trim().length > 0 && !loading && !imageUploading
 
@@ -99,8 +104,16 @@ export default function ComposeBox({ profile, onPost }: Props) {
     setShowLinkInput(false)
   }
 
+  function resetPoll() {
+    setShowPoll(false)
+    setPollQuestion('')
+    setPollOptions(['', ''])
+  }
+
   async function handlePost() {
     if (!canPost) return
+    const validPollOptions = pollOptions.map((o) => o.trim()).filter((o) => o.length > 0)
+    const includePoll = showPoll && pollQuestion.trim().length > 0 && validPollOptions.length >= 2
     setLoading(true)
     try {
       const res = await fetch('/api/posts', {
@@ -110,6 +123,9 @@ export default function ComposeBox({ profile, onPost }: Props) {
           content,
           language_tags: selectedLangs,
           image_url: imageUrl ?? undefined,
+          poll: includePoll
+            ? { question: pollQuestion.trim(), options: validPollOptions }
+            : undefined,
         }),
       })
       if (res.ok) {
@@ -122,6 +138,7 @@ export default function ComposeBox({ profile, onPost }: Props) {
         setSelectedLangs([])
         setFocused(false)
         removeImage()
+        resetPoll()
       }
     } finally {
       setLoading(false)
@@ -141,7 +158,7 @@ export default function ComposeBox({ profile, onPost }: Props) {
             value={content}
             onChange={e => setContent(e.target.value)}
             onFocus={() => setFocused(true)}
-            placeholder="¿Qué estás aprendiendo hoy?"
+            placeholder="¿En qué estás trabajando?"
             maxLength={280}
             rows={focused ? 3 : 2}
             style={{
@@ -238,6 +255,80 @@ export default function ComposeBox({ profile, onPost }: Props) {
             <p style={{ fontSize: 12, color: '#DC2626', margin: '0 0 8px', fontWeight: 600 }}>{imageError}</p>
           )}
 
+          {/* Poll editor */}
+          {showPoll && (
+            <div style={{
+              marginBottom: 12, padding: 12, borderRadius: 12,
+              background: 'var(--bg-secondary)', border: '1.5px solid var(--border)',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Encuesta
+                </span>
+                <button
+                  type="button"
+                  onClick={resetPoll}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    fontSize: 12, color: 'var(--text-muted)', fontFamily: 'inherit',
+                  }}
+                >Quitar</button>
+              </div>
+              <input
+                value={pollQuestion}
+                onChange={(e) => setPollQuestion(e.target.value)}
+                placeholder="Pregunta de la encuesta"
+                maxLength={200}
+                style={{
+                  width: '100%', padding: '8px 10px', marginBottom: 8,
+                  borderRadius: 8, border: '1.5px solid var(--border)',
+                  background: 'var(--bg-card)', fontSize: 13, fontFamily: 'inherit',
+                  outline: 'none', color: 'var(--text)',
+                }}
+              />
+              {pollOptions.map((opt, idx) => (
+                <div key={idx} style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+                  <input
+                    value={opt}
+                    onChange={(e) => setPollOptions((prev) => prev.map((o, i) => i === idx ? e.target.value : o))}
+                    placeholder={`Opción ${idx + 1}`}
+                    maxLength={80}
+                    style={{
+                      flex: 1, padding: '7px 10px', borderRadius: 8,
+                      border: '1.5px solid var(--border)', background: 'var(--bg-card)',
+                      fontSize: 13, fontFamily: 'inherit', outline: 'none', color: 'var(--text)',
+                    }}
+                  />
+                  {pollOptions.length > 2 && (
+                    <button
+                      type="button"
+                      onClick={() => setPollOptions((prev) => prev.filter((_, i) => i !== idx))}
+                      aria-label="Quitar opción"
+                      style={{
+                        width: 32, padding: 0, borderRadius: 8,
+                        border: '1.5px solid var(--border)', background: 'var(--bg-card)',
+                        color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'inherit',
+                      }}
+                    >×</button>
+                  )}
+                </div>
+              ))}
+              {pollOptions.length < 4 && (
+                <button
+                  type="button"
+                  onClick={() => setPollOptions((prev) => [...prev, ''])}
+                  style={{
+                    fontSize: 12, fontWeight: 700, color: 'var(--accent)',
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    fontFamily: 'inherit', padding: '4px 0', marginTop: 2,
+                  }}
+                >
+                  + Añadir opción
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Toolbar */}
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -258,11 +349,12 @@ export default function ComposeBox({ profile, onPost }: Props) {
                 onClick={handleImageClick}
                 active={!!imagePreview}
               />
-              {/* Poll placeholder */}
+              {/* Poll */}
               <ToolBtn
                 icon={<IconBarChart size={18} />}
                 label="Encuesta"
-                onClick={() => {}}
+                onClick={() => { setShowPoll((s) => !s); setFocused(true) }}
+                active={showPoll}
               />
               {/* Link */}
               <ToolBtn

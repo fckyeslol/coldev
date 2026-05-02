@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import ColDevLogo from '@/components/ui/ColDevLogo'
 
 const FEATURES = [
   {
@@ -68,27 +69,7 @@ export default function LandingPage() {
           zIndex: 50,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 10,
-              background: 'var(--accent)',
-              color: 'white',
-              display: 'grid',
-              placeItems: 'center',
-              fontWeight: 900,
-              fontSize: 14,
-            }}
-          >
-            CD
-          </div>
-
-          <span style={{ fontWeight: 800, fontSize: 20, letterSpacing: '-0.03em' }}>
-            col<span style={{ color: 'var(--accent)' }}>dev</span>
-          </span>
-        </div>
+        <ColDevLogo size={36} href={null} />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Link href="/login" className="btn btn-secondary" style={{ fontSize: 13, padding: '8px 16px' }}>

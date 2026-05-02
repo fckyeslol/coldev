@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import type { Profile } from '@/types'
 import Avatar from './Avatar'
+import ColDevLogo from './ColDevLogo'
 import { IconHome, IconSearch, IconGlobe, IconBell, IconEdit, IconMessage, IconForum } from './Icons'
 
 const NAV = [
@@ -56,22 +57,9 @@ export default function Sidebar({ profile }: { profile: Profile | null }) {
       overflowY: 'auto',
     }}>
       {/* Logo */}
-      <Link href="/feed" style={{
-        display: 'flex', alignItems: 'center', gap: 10,
-        padding: '12px 12px 16px', textDecoration: 'none', marginBottom: 4,
-      }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/logo.png"
-          alt="coldev logo"
-          width={36}
-          height={36}
-          style={{ borderRadius: 10, flexShrink: 0, objectFit: 'contain' }}
-        />
-        <span style={{ fontWeight: 800, fontSize: 20, letterSpacing: '-0.03em', color: 'var(--text)' }}>
-          col<span style={{ color: 'var(--accent)' }}>dev</span>
-        </span>
-      </Link>
+      <div style={{ padding: '12px 12px 20px' }}>
+        <ColDevLogo size={42} href="/feed" />
+      </div>
 
       {/* Nav */}
       <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -136,12 +124,11 @@ export default function Sidebar({ profile }: { profile: Profile | null }) {
       </nav>
 
       {/* Publish button */}
-      <Link href="/feed" className="btn btn-primary" style={{
-        width: '100%', marginBottom: 12, fontSize: 15, borderRadius: 14,
-        textDecoration: 'none', justifyContent: 'center',
-        display: 'flex', alignItems: 'center', gap: 8,
+      <Link href="/feed#compose" className="btn btn-primary" style={{
+        width: '100%', marginBottom: 12, fontSize: 15, padding: '12px 16px', borderRadius: 12,
+        textDecoration: 'none', justifyContent: 'center', fontWeight: 700,
+        display: 'flex', alignItems: 'center',
       }}>
-        <IconEdit size={16} stroke="white" />
         Publicar
       </Link>
 

@@ -38,9 +38,11 @@ export default function ConectarPage() {
         background: 'rgba(255,251,245,0.92)', backdropFilter: 'blur(12px)',
         borderBottom: '1.5px solid var(--border)', padding: '14px 20px',
       }}>
-        <h1 style={{ margin: 0, fontSize: 18, fontWeight: 800, letterSpacing: '-0.03em' }}>Conectar ⚡</h1>
-        <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--text-muted)' }}>
-          Devs perfectos para ti según el algoritmo
+        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text)' }}>
+          Conectar
+        </h1>
+        <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>
+          Devs compatibles con tu stack, objetivos e intereses
         </p>
       </div>
 
@@ -50,7 +52,7 @@ export default function ConectarPage() {
         background: 'var(--accent-light)', border: '1.5px solid var(--accent)',
       }}>
         <p style={{ margin: '0 0 12px', fontSize: 13, fontWeight: 700, color: 'var(--accent-dark)' }}>
-          ¿Cómo funciona el algoritmo? 🤖
+          Cómo funciona el algoritmo
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
           {[
@@ -106,7 +108,6 @@ export default function ConectarPage() {
           ))
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '64px 32px' }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>
             <p style={{ fontWeight: 700, fontSize: 16, margin: 0 }}>No hay matches todavía</p>
             <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8 }}>
               Completa tu perfil para mejorar los resultados
@@ -115,7 +116,7 @@ export default function ConectarPage() {
         ) : (
           <>
             <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '0 0 4px' }}>
-              {filtered.length} devs compatibles encontrados ✨
+              {filtered.length} devs compatibles
             </p>
             {filtered.map(dev => <DevCard key={dev.id} dev={dev} />)}
           </>

@@ -29,5 +29,16 @@ export async function POST(
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  // Notify thread author (skip self).
+  const { data: thread } = await supabase
+    .from('forum_threads').select('user_id').eq('id', id).maybeSingle()
+  if (thread && thread.user_id !== user.id) {
+    await supabase.from('notifications').insert({
+      user_id: thread.user_id,
+      actor_id: user.id,
+      type: 'reply',
+    })
+  }
+
   return NextResponse.json({ comment: data })
 }

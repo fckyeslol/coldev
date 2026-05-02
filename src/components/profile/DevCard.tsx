@@ -75,7 +75,7 @@ export default function DevCard({ dev }: { dev: MatchedProfile }) {
               </span>
               {dev.is_open_to_connect && (
                 <span style={{ fontSize: 11, color: 'var(--green)', fontWeight: 600 }}>
-                  ● Abierto a conectar
+                  Abierto a conectar
                 </span>
               )}
             </div>
@@ -128,7 +128,7 @@ export default function DevCard({ dev }: { dev: MatchedProfile }) {
           {following && (
             <button onClick={handleMessage} disabled={messaging} className="btn btn-secondary"
               style={{ fontSize: 13, padding: '8px 16px' }}>
-              💬 {messaging ? '...' : 'Mensaje'}
+              {messaging ? '...' : 'Mensaje'}
             </button>
           )}
         </div>

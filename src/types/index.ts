@@ -44,6 +44,21 @@ export interface Profile {
   posts_count?: number
 }
 
+export interface PollOption {
+  id: string
+  position: number
+  text: string
+  votes_count: number
+}
+
+export interface Poll {
+  id: string
+  question: string
+  closes_at: string | null
+  options: PollOption[]
+  my_vote?: string | null
+}
+
 export interface Post {
   id: string
   user_id: string
@@ -58,6 +73,7 @@ export interface Post {
   created_at: string
   // Relations
   profile?: Profile
+  poll?: Poll | null
   has_liked?: boolean
   has_reposted?: boolean
   languages?: Language[]

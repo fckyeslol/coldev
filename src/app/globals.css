@@ -1,26 +1,60 @@
 @import "tailwindcss";
 
 :root {
+  --font-size: 16px;
+
+  /* ─── Warm palette */
   --bg:           #FFFBF5;
+  --bg-primary:   #FFFBF5;
   --bg-secondary: #F5F1E8;
   --bg-card:      #FFFFFF;
   --bg-hover:     #FAF6EF;
   --border:       #E8E2D8;
+  --border-light: #E8E2D8;
+  --border-medium: #D4C9B8;
   --border-hover: #D4C9B8;
-  --text:         #2D2621;
-  --text-muted:   #8B8480;
-  --text-dim:     #C5BFB8;
-  --accent:       #E87952;
-  --accent-dark:  #D96B47;
-  --accent-glow:  rgba(232, 121, 82, 0.12);
-  --accent-light: #FDF0EB;
-  --yellow:       #F4A847;
-  --yellow-light: #FEF6E8;
-  --green:        #8BA888;
-  --green-light:  #EEF4ED;
-  --shadow-sm: 0 1px 3px rgba(180,140,110,0.10);
-  --shadow-md: 0 2px 8px rgba(180,140,110,0.14);
-  --shadow-lg: 0 4px 20px rgba(180,140,110,0.18);
+  --text:           #2D2621;
+  --text-primary:   #2D2621;
+  --text-secondary: #544D45;
+  --text-muted:     #8B8480;
+  --text-tertiary:  #8B8480;
+  --text-dim:       #C5BFB8;
+  --accent:        #E87952;
+  --color-primary: #E87952;
+  --color-primary-dark: #D96B47;
+  --accent-dark:   #D96B47;
+  --accent-glow:   rgba(232, 121, 82, 0.12);
+  --accent-light:  #FFF9F0;
+  --color-secondary: #F4A847;
+  --yellow:        #F4A847;
+  --yellow-light:  #FEF6E8;
+  --color-success: #8BA888;
+  --green:         #8BA888;
+  --green-light:   #EEF4ED;
+  --green-glow:    rgba(139, 168, 136, 0.16);
+
+  /* ─── Warm shadows (rgba uses brown tones, not cool grey) */
+  --shadow-sm: 0 1px 3px rgba(212, 180, 150, 0.10);
+  --shadow-md: 0 2px 8px rgba(212, 180, 150, 0.14);
+  --shadow-lg: 0 4px 20px rgba(212, 180, 150, 0.18);
+  --shadow-hover: 0 4px 16px rgba(212, 180, 150, 0.15);
+
+  /* ─── shadcn/ui compatibility */
+  --background: #FFFBF5;
+  --foreground: #2D2621;
+  --card: #FFFFFF;
+  --card-foreground: #2D2621;
+  --primary: #E87952;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F4A847;
+  --secondary-foreground: #2D2621;
+  --muted: #F5F1E8;
+  --muted-foreground: #8B8480;
+  --accent-foreground: #E87952;
+  --destructive: #C65D3B;
+  --destructive-foreground: #FFFFFF;
+  --ring: #E87952;
+  --radius: 0.75rem;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

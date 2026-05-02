@@ -150,6 +150,14 @@ export function IconMapPin({ size = 18, stroke, style, className }: IconProps) {
   )
 }
 
+export function IconBookmark({ size = 18, stroke, style, className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" style={{ ...base(size), ...style }} className={className} {...props(stroke)}>
+      <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
+    </svg>
+  )
+}
+
 export function IconForum({ size = 20, stroke, style, className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" style={{ ...base(size), ...style }} className={className} {...props(stroke)}>

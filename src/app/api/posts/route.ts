@@ -18,6 +18,10 @@ export async function GET(request: Request) {
         *,
         profile:profiles!posts_user_id_fkey(id, username, full_name, avatar_url, level, city,
           user_languages(proficiency, language:languages(id, name, color))
+        ),
+        poll:polls!polls_post_id_fkey(
+          id, question, closes_at,
+          options:poll_options(id, position, text, votes_count)
         )
       `)
       .is('parent_id', null)
@@ -46,15 +50,21 @@ export async function GET(request: Request) {
 
     if (user && posts && posts.length > 0) {
       const postIds = posts.map((p) => p.id)
-      const [{ data: likes }, { data: reposts }] = await Promise.all([
+      const pollIds = posts.flatMap((p) => p.poll?.id ? [p.poll.id] : [])
+      const [{ data: likes }, { data: reposts }, { data: polls }] = await Promise.all([
         supabase.from('post_likes').select('post_id').eq('user_id', user.id).in('post_id', postIds),
         supabase.from('post_reposts').select('post_id').eq('user_id', user.id).in('post_id', postIds),
+        pollIds.length > 0
+          ? supabase.from('poll_votes').select('poll_id, option_id').eq('user_id', user.id).in('poll_id', pollIds)
+          : Promise.resolve({ data: [] as { poll_id: string; option_id: string }[] }),
       ])
       const likedSet = new Set(likes?.map((l) => l.post_id) ?? [])
       const repostedSet = new Set(reposts?.map((r) => r.post_id) ?? [])
+      const myVoteByPoll = new Map(((polls ?? []) as { poll_id: string; option_id: string }[]).map((v) => [v.poll_id, v.option_id]))
       posts.forEach((p) => {
         p.has_liked = likedSet.has(p.id)
         p.has_reposted = repostedSet.has(p.id)
+        if (p.poll?.id) p.poll.my_vote = myVoteByPoll.get(p.poll.id) ?? null
       })
     }
 
@@ -71,27 +81,72 @@ export async function POST(request: Request) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { content, language_tags, topic_tags, parent_id, image_url } = await request.json()
+    const { content, language_tags, topic_tags, parent_id, image_url, poll } = await request.json() as {
+      content?: string
+      language_tags?: number[]
+      topic_tags?: number[]
+      parent_id?: string | null
+      image_url?: string | null
+      poll?: { question: string; options: string[] } | null
+    }
     if (!content?.trim()) return NextResponse.json({ error: 'Content required' }, { status: 400 })
     if (content.length > 280) return NextResponse.json({ error: 'Too long' }, { status: 400 })
 
-    const { data, error } = await supabase
-      .from('posts')
-      .insert({
-        user_id: user.id,
-        content: content.trim(),
-        language_tags: language_tags ?? [],
-        topic_tags: topic_tags ?? [],
-        parent_id: parent_id ?? null,
-        image_url: image_url ?? null,
-      })
-      .select(`*, profile:profiles!posts_user_id_fkey(id, username, full_name, avatar_url, level)`)
-      .single()
+    let createdId: string | null = null
+    let postRow: Record<string, unknown> | null = null
 
-    if (error) {
-      console.error('Post insert error:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (poll && poll.question?.trim() && Array.isArray(poll.options) && poll.options.length >= 2) {
+      // Atomic: post + poll + options via RPC.
+      const cleanedOptions = poll.options
+        .map((o) => o.trim())
+        .filter((o) => o.length > 0 && o.length <= 80)
+        .slice(0, 4)
+      if (cleanedOptions.length < 2) {
+        return NextResponse.json({ error: 'La encuesta requiere al menos 2 opciones' }, { status: 400 })
+      }
+      const { data: id, error: rpcErr } = await supabase.rpc('create_post_with_poll', {
+        p_content: content.trim(),
+        p_language_tags: language_tags ?? [],
+        p_topic_tags: topic_tags ?? [],
+        p_image_url: image_url ?? null,
+        p_poll_question: poll.question.trim().slice(0, 200),
+        p_poll_options: cleanedOptions,
+      })
+      if (rpcErr || !id) {
+        console.error('create_post_with_poll error:', rpcErr)
+        return NextResponse.json({ error: rpcErr?.message ?? 'No se pudo crear el post' }, { status: 500 })
+      }
+      createdId = id as string
+    } else {
+      const { data, error } = await supabase
+        .from('posts')
+        .insert({
+          user_id: user.id,
+          content: content.trim(),
+          language_tags: language_tags ?? [],
+          topic_tags: topic_tags ?? [],
+          parent_id: parent_id ?? null,
+          image_url: image_url ?? null,
+        })
+        .select(`*, profile:profiles!posts_user_id_fkey(id, username, full_name, avatar_url, level)`)
+        .single()
+      if (error) {
+        console.error('Post insert error:', error)
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
+      postRow = data
+      createdId = data.id as string
     }
+
+    if (!postRow) {
+      const { data: refetched } = await supabase
+        .from('posts')
+        .select(`*, profile:profiles!posts_user_id_fkey(id, username, full_name, avatar_url, level)`)
+        .eq('id', createdId)
+        .single()
+      postRow = refetched
+    }
+    const data = postRow as { id: string; user_id: string } & Record<string, unknown>
 
     // No DB trigger exists for replies_count; bump it manually for replies.
     if (parent_id) {

@@ -36,7 +36,7 @@ export default function LoginPage() {
           <img src="/logo.png" alt="coldev" width={56} height={56}
             style={{ borderRadius: 16, margin: '0 auto 16px', objectFit: 'contain', display: 'block' }} />
           <h1 style={{ fontSize: 26, fontWeight: 800, margin: 0, letterSpacing: '-0.03em' }}>Bienvenido de nuevo</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: 14, marginTop: 6 }}>La comunidad dev de Colombia 🇨🇴</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14, marginTop: 6 }}>Comunidad de desarrolladores en Colombia</p>
         </div>
 
         <form onSubmit={handleLogin} style={{

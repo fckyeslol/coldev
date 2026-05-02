@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { City, Goal, Profile, Proficiency, UserLevel } from '@/types'
-import { GOAL_ICONS, GOAL_LABELS, LEVEL_LABELS } from '@/types'
+import { GOAL_LABELS, LEVEL_LABELS } from '@/types'
 import { cn } from '@/lib/utils'
 import Avatar from '@/components/ui/Avatar'
 
@@ -44,10 +44,10 @@ const ALL_GOALS: Goal[] = [
   'networking', 'aprender_juntos', 'conseguir_trabajo', 'contratar',
 ]
 
-const PROFICIENCIES: { value: Proficiency; label: string; emoji: string }[] = [
-  { value: 'aprendiendo', label: 'Aprendiendo', emoji: '📖' },
-  { value: 'cómodo',      label: 'Cómodo',       emoji: '✨' },
-  { value: 'experto',     label: 'Experto',       emoji: '⚡' },
+const PROFICIENCIES: { value: Proficiency; label: string }[] = [
+  { value: 'aprendiendo', label: 'Aprendiendo' },
+  { value: 'cómodo',      label: 'Cómodo'      },
+  { value: 'experto',     label: 'Experto'     },
 ]
 
 const CITIES: City[] = ['Bogotá', 'Medellín', 'Cali', 'Barranquilla', 'Cartagena', 'Bucaramanga', 'Pereira', 'Manizales', 'otra']
@@ -55,11 +55,11 @@ const LEVELS: UserLevel[] = ['aprendiendo', 'junior', 'mid', 'senior', 'experto'
 
 type Tab = 'perfil' | 'stack' | 'buscando' | 'intereses'
 
-const TABS: { id: Tab; label: string; emoji: string }[] = [
-  { id: 'perfil',    label: 'Perfil',     emoji: '👤' },
-  { id: 'stack',     label: 'Stack',      emoji: '💻' },
-  { id: 'buscando',  label: 'Buscando',   emoji: '🎯' },
-  { id: 'intereses', label: 'Intereses',  emoji: '✨' },
+const TABS: { id: Tab; label: string }[] = [
+  { id: 'perfil',    label: 'Perfil'    },
+  { id: 'stack',     label: 'Stack'     },
+  { id: 'buscando',  label: 'Buscando'  },
+  { id: 'intereses', label: 'Intereses' },
 ]
 
 interface Props {
@@ -84,17 +84,25 @@ export default function EditProfileModal({ profile, onClose }: Props) {
 
   // Stack
   const [selectedLangs, setSelectedLangs] = useState<Map<number, Proficiency>>(
-    () => new Map((profile.user_languages ?? []).map((ul) => [ul.language.id, ul.proficiency]))
+    () => new Map(
+      (profile.user_languages ?? [])
+        .filter((ul) => ul?.language)
+        .map((ul) => [ul.language.id, ul.proficiency]),
+    ),
   )
 
   // Goals
   const [goals, setGoals] = useState<Set<Goal>>(
-    () => new Set((profile.user_goals ?? []).map((g) => g.goal))
+    () => new Set((profile.user_goals ?? []).map((g) => g.goal)),
   )
 
   // Interests
   const [interests, setInterests] = useState<Set<number>>(
-    () => new Set((profile.user_interests ?? []).map((ui) => ui.topic.id))
+    () => new Set(
+      (profile.user_interests ?? [])
+        .filter((ui) => ui?.topic)
+        .map((ui) => ui.topic.id),
+    ),
   )
 
   const [saving, setSaving]               = useState(false)
@@ -216,22 +224,32 @@ export default function EditProfileModal({ profile, onClose }: Props) {
         </div>
 
         {/* Tab bar */}
-        <div className="flex border-b border-[var(--border)] px-4 gap-1">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-3 text-[13px] font-semibold border-b-2 transition-colors -mb-px',
-                tab === t.id
-                  ? 'border-[var(--accent)] text-[var(--accent)]'
-                  : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text)]'
-              )}
-            >
-              <span>{t.emoji}</span>
-              <span>{t.label}</span>
-            </button>
-          ))}
+        <div
+          className="flex border-b border-[var(--border)]"
+          style={{ background: 'var(--bg-secondary)' }}
+        >
+          {TABS.map((t) => {
+            const active = tab === t.id
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className="relative flex-1 px-4 py-3.5 text-[13px] transition-colors"
+                style={{
+                  fontWeight: active ? 700 : 500,
+                  color: active ? 'var(--accent)' : 'var(--text-muted)',
+                  background: active ? 'var(--bg-card)' : 'transparent',
+                  borderBottom: active ? '2px solid var(--accent)' : '2px solid transparent',
+                  marginBottom: -1,
+                  fontFamily: 'inherit',
+                  cursor: 'pointer',
+                  letterSpacing: '-0.005em',
+                }}
+              >
+                {t.label}
+              </button>
+            )
+          })}
         </div>
 
         {/* Body */}
@@ -247,7 +265,7 @@ export default function EditProfileModal({ profile, onClose }: Props) {
                   'inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-bold border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text)] transition-colors',
                   uploadingAvatar ? 'opacity-60 cursor-wait' : 'cursor-pointer hover:border-[var(--accent)] hover:text-[var(--accent)]'
                 )}>
-                  {uploadingAvatar ? 'Subiendo...' : '📷 Cambiar avatar'}
+                  {uploadingAvatar ? 'Subiendo...' : 'Cambiar avatar'}
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/gif,image/webp"
@@ -361,7 +379,7 @@ export default function EditProfileModal({ profile, onClose }: Props) {
                                   : 'border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--border-hover)]'
                               )}
                             >
-                              {p.emoji} {p.label}
+                              {p.label}
                             </button>
                           ))}
                         </div>
@@ -397,8 +415,7 @@ export default function EditProfileModal({ profile, onClose }: Props) {
                         : 'border-[var(--border)] bg-[var(--bg-hover)] hover:border-[var(--border-hover)]'
                     )}
                   >
-                    <span className="text-xl block mb-1">{GOAL_ICONS[goal]}</span>
-                    <span className="text-[12px] font-semibold leading-tight block">{GOAL_LABELS[goal]}</span>
+                    <span className="text-[13px] font-semibold leading-snug block">{GOAL_LABELS[goal]}</span>
                   </button>
                 ))}
               </div>
@@ -429,8 +446,7 @@ export default function EditProfileModal({ profile, onClose }: Props) {
                     )}
                     style={interests.has(topic.id) ? { background: '#EEF4ED' } : {}}
                   >
-                    <span className="text-2xl block mb-1">{topic.icon}</span>
-                    <span className="text-[11px] font-semibold leading-tight block">{topic.name}</span>
+                    <span className="text-[12px] font-semibold leading-tight block">{topic.name}</span>
                   </button>
                 ))}
               </div>

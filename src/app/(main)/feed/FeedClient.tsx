@@ -59,19 +59,15 @@ export default function FeedClient({ profile }: { profile: Profile }) {
       {/* Header */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 10,
-        background: 'rgba(255,251,245,0.92)', backdropFilter: 'blur(12px)',
-        borderBottom: '1.5px solid var(--border)', padding: '14px 20px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        background: 'var(--bg-primary)',
+        borderBottom: '1.5px solid var(--border)', padding: '24px',
       }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: 18, fontWeight: 800, letterSpacing: '-0.03em' }}>
-            Feed ☕
-          </h1>
-          <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>
-            La comunidad dev de Colombia
-          </p>
-        </div>
-        <span style={{ fontSize: 20 }}>🇨🇴</span>
+        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text)' }}>
+          Feed
+        </h1>
+        <p style={{ margin: '4px 0 0', fontSize: 14, color: 'var(--text-muted)' }}>
+          Comunidad de desarrolladores en Colombia
+        </p>
       </div>
 
       <ComposeBox profile={profile} onPost={handleNewPost} />
@@ -136,22 +132,19 @@ export default function FeedClient({ profile }: { profile: Profile }) {
       {/* Empty */}
       {!loading && !error && posts.length === 0 && (
         <div style={{ textAlign: 'center', padding: '64px 32px' }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>
-            {debouncedSearch ? '🔍' : tab === 'following' ? '👥' : '✍️'}
-          </div>
           <p style={{ fontWeight: 700, fontSize: 16, margin: 0, color: 'var(--text)' }}>
             {debouncedSearch
               ? 'Sin resultados'
               : tab === 'following'
                 ? 'Aún no sigues a nadie'
-                : '¡Sé el primero en publicar!'}
+                : 'Sé el primero en publicar'}
           </p>
-          <p style={{ fontSize: 14, marginTop: 8, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+          <p style={{ fontSize: 14, marginTop: 8, color: 'var(--text-muted)', lineHeight: 1.6, maxWidth: 360, marginInline: 'auto' }}>
             {debouncedSearch
               ? `Probaste con "${debouncedSearch}". Cambia el filtro o vuelve a "Para ti".`
               : tab === 'following'
                 ? 'Encuentra devs en Explorar para llenar tu feed.'
-                : 'Comparte qué estás aprendiendo, una duda, o un logro 🚀'}
+                : 'Comparte qué estás trabajando, una duda, o un logro.'}
           </p>
         </div>
       )}
@@ -174,7 +167,7 @@ export default function FeedClient({ profile }: { profile: Profile }) {
       )}
       {!loading && !error && !hasMore && posts.length > 0 && (
         <div style={{ textAlign: 'center', padding: 32, fontSize: 14, color: 'var(--text-muted)' }}>
-          ☕ Ya viste todo por hoy
+          Ya viste todo por hoy
         </div>
       )}
     </div>

@@ -4,6 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Avatar from '@/components/ui/Avatar'
+import Linkified from '@/components/ui/Linkified'
+import { IconBookmark } from '@/components/ui/Icons'
 import { timeAgo } from '@/lib/utils'
 
 interface Author {
@@ -49,6 +51,19 @@ export default function ThreadDetailClient({
   const [posting, setPosting] = useState(false)
   const [err, setErr] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [bookmarked, setBookmarked] = useState(false)
+
+  async function handleBookmark() {
+    if (!isAuthed) { router.push('/login'); return }
+    const next = !bookmarked
+    setBookmarked(next)
+    const res = await fetch('/api/bookmarks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target_type: 'thread', target_id: thread.id }),
+    })
+    if (!res.ok) setBookmarked(!next)
+  }
 
   async function handleVote(value: 1 | -1) {
     if (!isAuthed) { router.push('/login'); return }
@@ -156,7 +171,7 @@ export default function ThreadDetailClient({
             margin: '12px 0 16px', fontSize: 14, lineHeight: 1.65, color: 'var(--text)',
             whiteSpace: 'pre-wrap', wordBreak: 'break-word',
           }}>
-            {thread.content}
+            <Linkified text={thread.content} />
           </p>
 
           {/* Author + meta */}
@@ -177,6 +192,21 @@ export default function ThreadDetailClient({
                   </p>
                 </div>
               </Link>
+              <button
+                onClick={handleBookmark}
+                aria-label={bookmarked ? 'Quitar guardado' : 'Guardar hilo'}
+                title={bookmarked ? 'Quitar guardado' : 'Guardar'}
+                style={{
+                  display: 'inline-flex', alignItems: 'center',
+                  background: 'var(--bg-card)', border: '1.5px solid var(--border)',
+                  borderRadius: 8, padding: '6px 10px',
+                  color: bookmarked ? 'var(--accent)' : 'var(--text-muted)',
+                  cursor: 'pointer',
+                }}
+              >
+                <IconBookmark size={16} stroke={bookmarked ? 'var(--accent)' : 'currentColor'}
+                  style={{ fill: bookmarked ? 'var(--accent)' : 'none' }} />
+              </button>
               {isOwner && (
                 <button
                   onClick={handleDelete}
@@ -235,7 +265,6 @@ export default function ThreadDetailClient({
         </div>
         {comments.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--text-muted)' }}>
-            <div style={{ fontSize: 32, marginBottom: 6 }}>💭</div>
             <p style={{ fontSize: 13, margin: 0 }}>Sé el primero en comentar.</p>
           </div>
         ) : (
@@ -263,7 +292,7 @@ export default function ThreadDetailClient({
                     margin: '4px 0 0', fontSize: 14, color: 'var(--text)', lineHeight: 1.5,
                     whiteSpace: 'pre-wrap', wordBreak: 'break-word',
                   }}>
-                    {c.content}
+                    <Linkified text={c.content} />
                   </p>
                 </div>
               </div>

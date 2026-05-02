@@ -154,46 +154,39 @@ export default function RegisterPage() {
       return
     }
 
-    const userId = authData.user.id
+    // If email confirmation is enabled, signUp won't return a session — sign in
+    // explicitly so the RPC below runs as the new user.
+    if (!authData.session) {
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+      if (signInError) {
+        setError('Tu cuenta fue creada pero necesitas verificar el correo antes de continuar.')
+        setLoading(false)
+        return
+      }
+    }
 
-    // 3. Upsert profile (handles repeated sign-up attempts)
-    const { error: profileError } = await supabase.from('profiles').upsert({
-      id: userId,
-      username,
-      full_name: fullName,
-      city,
-      bio,
-      level,
+    // 3. Atomic onboarding via security-definer RPC. Bypasses any RLS quirks
+    //    on user_languages / user_goals / user_interests.
+    const { error: rpcError } = await supabase.rpc('complete_onboarding', {
+      p_username: username,
+      p_full_name: fullName,
+      p_city: city,
+      p_level: level,
+      p_bio: bio || '',
+      p_languages: Array.from(selectedLangs.entries()).map(([language_id, proficiency]) => ({
+        language_id, proficiency,
+      })),
+      p_goals: Array.from(goals),
+      p_interests: Array.from(interests),
     })
-    if (profileError) {
-      setError(`Error al crear perfil: ${profileError.message}`)
+
+    if (rpcError) {
+      const e = rpcError as { message?: string; details?: string; hint?: string; code?: string }
+      const detail = [e.message, e.details, e.hint, e.code].filter(Boolean).join(' · ')
+      console.error('complete_onboarding rpc error:', detail, rpcError)
+      setError(`Error guardando tu perfil: ${detail || 'desconocido'}. Vuelve a intentar.`)
       setLoading(false)
       return
-    }
-
-    // 3. Insert languages
-    if (selectedLangs.size > 0) {
-      await supabase.from('user_languages').insert(
-        Array.from(selectedLangs.entries()).map(([language_id, proficiency]) => ({
-          user_id: userId,
-          language_id,
-          proficiency,
-        }))
-      )
-    }
-
-    // 4. Insert goals
-    if (goals.size > 0) {
-      await supabase.from('user_goals').insert(
-        Array.from(goals).map((goal) => ({ user_id: userId, goal }))
-      )
-    }
-
-    // 5. Insert interests
-    if (interests.size > 0) {
-      await supabase.from('user_interests').insert(
-        Array.from(interests).map((topic_id) => ({ user_id: userId, topic_id }))
-      )
     }
 
     router.push('/feed')

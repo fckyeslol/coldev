@@ -3,14 +3,18 @@
 import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import type { Post } from '@/types'
+import { LEVEL_LABELS, type UserLevel } from '@/types'
 import Avatar from '@/components/ui/Avatar'
-import { IconHeart, IconMessage, IconRepeat, IconShare, IconSend } from '@/components/ui/Icons'
+import { IconHeart, IconMessage, IconRepeat, IconShare, IconSend, IconBookmark } from '@/components/ui/Icons'
+import Linkified from '@/components/ui/Linkified'
+import PollCard from '@/components/feed/PollCard'
 import { timeAgo } from '@/lib/utils'
 
 interface Props {
   post: Post
   onLike?: (postId: string, liked: boolean) => void
   isComment?: boolean
+  initialOpenComments?: boolean
 }
 
 function CommentItem({ comment }: { comment: Post }) {
@@ -46,7 +50,7 @@ function CommentItem({ comment }: { comment: Post }) {
           <span style={{ color: 'var(--text-dim)', fontSize: 12 }}>· {timeAgo(comment.created_at)}</span>
         </div>
         <p style={{ margin: '4px 0 8px', fontSize: 13, color: 'var(--text)', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
-          {comment.content}
+          <Linkified text={comment.content} />
         </p>
         <button onClick={handleLike} style={{
           display: 'flex', alignItems: 'center', gap: 4,
@@ -170,15 +174,16 @@ function CommentsSection({ postId, onCountChange }: { postId: string; onCountCha
   )
 }
 
-export default function PostCard({ post, onLike, isComment = false }: Props) {
+export default function PostCard({ post, onLike, isComment = false, initialOpenComments = false }: Props) {
   const [liked, setLiked] = useState(post.has_liked ?? false)
   const [likesCount, setLikesCount] = useState(post.likes_count)
   const [reposted, setReposted] = useState(post.has_reposted ?? false)
   const [repostsCount, setRepostsCount] = useState(post.reposts_count)
   const [repliesCount, setRepliesCount] = useState(post.replies_count)
-  const [showComments, setShowComments] = useState(false)
+  const [showComments, setShowComments] = useState(initialOpenComments)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [bookmarked, setBookmarked] = useState(false)
 
   async function handleLike() {
     if (actionLoading) return
@@ -209,6 +214,17 @@ export default function PostCard({ post, onLike, isComment = false }: Props) {
       setReposted(!newReposted); setRepostsCount(c => newReposted ? c - 1 : c + 1)
     }
     setActionLoading(null)
+  }
+
+  async function handleBookmark() {
+    const next = !bookmarked
+    setBookmarked(next)
+    const res = await fetch('/api/bookmarks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target_type: 'post', target_id: post.id }),
+    })
+    if (!res.ok) setBookmarked(!next)
   }
 
   async function handleShare() {
@@ -258,14 +274,17 @@ export default function PostCard({ post, onLike, isComment = false }: Props) {
               background: 'var(--bg-secondary)', color: 'var(--text-muted)',
               border: '1px solid var(--border)', fontWeight: 600,
             }}>
-              {profile.level}
+              {LEVEL_LABELS[profile.level as UserLevel] ?? profile.level}
             </span>
           </div>
 
           {/* Content */}
           <p style={{ fontSize: 14, marginTop: 6, marginBottom: 0, lineHeight: 1.6, color: 'var(--text)', whiteSpace: 'pre-wrap' }}>
-            {post.content}
+            <Linkified text={post.content} />
           </p>
+
+          {/* Poll */}
+          {post.poll && <PollCard poll={post.poll} />}
 
           {/* Image */}
           {post.image_url && (
@@ -330,12 +349,30 @@ export default function PostCard({ post, onLike, isComment = false }: Props) {
               icon={<IconRepeat size={17} stroke={reposted ? 'var(--green)' : 'currentColor'} />}
             />
 
+            {/* Bookmark */}
+            <button
+              onClick={handleBookmark}
+              aria-label={bookmarked ? 'Quitar guardado' : 'Guardar post'}
+              title={bookmarked ? 'Quitar guardado' : 'Guardar'}
+              style={{
+                marginLeft: 'auto',
+                display: 'flex', alignItems: 'center',
+                background: 'none', border: 'none', cursor: 'pointer',
+                padding: '5px 8px', borderRadius: 8,
+                color: bookmarked ? 'var(--accent)' : 'var(--text-muted)',
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={e => { if (!bookmarked) (e.currentTarget as HTMLElement).style.color = 'var(--text)' }}
+              onMouseLeave={e => { if (!bookmarked) (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)' }}
+            >
+              <IconBookmark size={17} stroke={bookmarked ? 'var(--accent)' : 'currentColor'} style={{ fill: bookmarked ? 'var(--accent)' : 'none' }} />
+            </button>
+
             {/* Share */}
             <button
               onClick={handleShare}
               title={copied ? '¡Enlace copiado!' : 'Compartir'}
               style={{
-                marginLeft: 'auto',
                 display: 'flex', alignItems: 'center', gap: 5,
                 background: 'none', border: 'none', cursor: 'pointer',
                 padding: '5px 8px', borderRadius: 8,

@@ -42,10 +42,10 @@ export default function InboxClient() {
         background: 'rgba(255,251,245,0.95)', backdropFilter: 'blur(12px)',
         borderBottom: '1.5px solid var(--border)', padding: '14px 20px',
       }}>
-        <h1 style={{ margin: 0, fontSize: 18, fontWeight: 800, letterSpacing: '-0.03em' }}>
-          Mensajes 💬
+        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text)' }}>
+          Mensajes
         </h1>
-        <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--text-muted)' }}>
+        <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>
           Conversaciones privadas con devs conectados
         </p>
       </div>
@@ -69,7 +69,6 @@ export default function InboxClient() {
         ))
       ) : items.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '64px 32px' }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>💌</div>
           <p style={{ fontWeight: 700, fontSize: 16, margin: 0 }}>Aún no tienes mensajes</p>
           <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.5, maxWidth: 320, marginLeft: 'auto', marginRight: 'auto' }}>
             Conecta con otros devs y abre una conversación desde su perfil.
@@ -113,7 +112,7 @@ export default function InboxClient() {
                   fontWeight: c.unread ? 600 : 400,
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 }}>
-                  {c.last_message?.content ?? 'Sin mensajes todavía. ¡Saluda!'}
+                  {c.last_message?.content ?? 'Sin mensajes todavía. Saluda.'}
                 </p>
               </div>
               {c.unread && (

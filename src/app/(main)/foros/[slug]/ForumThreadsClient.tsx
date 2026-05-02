@@ -147,7 +147,7 @@ export default function ForumThreadsClient({
                 borderColor: sort === s ? 'var(--accent)' : 'var(--border)',
               }}
             >
-              {s === 'new' ? '🕐 Nuevos' : '🔥 Top'}
+              {s === 'new' ? 'Nuevos' : 'Top'}
             </button>
           ))}
         </div>
@@ -206,7 +206,6 @@ export default function ForumThreadsClient({
           ))
         ) : threads.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 32px' }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>🪴</div>
             <p style={{ fontWeight: 700, fontSize: 16, margin: 0 }}>Aún no hay temas en {forum.name}</p>
             <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8 }}>
               Sé el primero en abrir una discusión.

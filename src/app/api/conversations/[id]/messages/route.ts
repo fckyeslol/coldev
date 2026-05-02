@@ -15,7 +15,7 @@ export async function GET(
 
   let q = supabase
     .from('messages')
-    .select('id, conversation_id, sender_id, content, created_at')
+    .select('id, conversation_id, sender_id, content, image_url, created_at')
     .eq('conversation_id', id)
     .order('created_at', { ascending: false })
     .limit(50)
@@ -46,15 +46,21 @@ export async function POST(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await request.json().catch(() => ({})) as { content?: string }
-  const content = body?.content?.trim()
-  if (!content) return NextResponse.json({ error: 'content required' }, { status: 400 })
+  const body = await request.json().catch(() => ({})) as { content?: string; image_url?: string | null }
+  const content = body?.content?.trim() ?? ''
+  const imageUrl = body?.image_url ?? null
+  if (!content && !imageUrl) return NextResponse.json({ error: 'content or image required' }, { status: 400 })
   if (content.length > 2000) return NextResponse.json({ error: 'too long' }, { status: 400 })
 
   const { data, error } = await supabase
     .from('messages')
-    .insert({ conversation_id: id, sender_id: user.id, content })
-    .select('id, conversation_id, sender_id, content, created_at')
+    .insert({
+      conversation_id: id,
+      sender_id: user.id,
+      content: content || '',
+      image_url: imageUrl,
+    })
+    .select('id, conversation_id, sender_id, content, image_url, created_at')
     .single()
 
   if (error) {

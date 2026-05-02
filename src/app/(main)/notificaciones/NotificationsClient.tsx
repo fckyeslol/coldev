@@ -63,10 +63,10 @@ export default function NotificationsClient({ initial }: { initial: Notification
         padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 18, fontWeight: 800, letterSpacing: '-0.03em' }}>
-            Notificaciones 🔔
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text)' }}>
+            Notificaciones
           </h1>
-          <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>
+          <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>
             {unread > 0 ? `${unread} sin leer` : 'Todo al día'}
           </p>
         </div>
@@ -92,7 +92,6 @@ export default function NotificationsClient({ initial }: { initial: Notification
 
       {items.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '64px 32px' }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🔕</div>
           <p style={{ fontWeight: 700, fontSize: 16, margin: 0 }}>Aún no hay notificaciones</p>
           <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.5 }}>
             Cuando alguien te siga, le dé like, repostee<br />o responda a tus posts, lo verás aquí.

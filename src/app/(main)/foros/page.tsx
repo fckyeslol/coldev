@@ -26,10 +26,10 @@ export default async function ForosIndexPage() {
         background: 'rgba(255,251,245,0.95)', backdropFilter: 'blur(12px)',
         borderBottom: '1.5px solid var(--border)', padding: '14px 20px',
       }}>
-        <h1 style={{ margin: 0, fontSize: 18, fontWeight: 800, letterSpacing: '-0.03em' }}>
-          Foros 🗣️
+        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text)' }}>
+          Foros
         </h1>
-        <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--text-muted)' }}>
+        <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>
           Discusiones largas sobre programación. Vota, comenta, conecta.
         </p>
       </div>
@@ -37,7 +37,6 @@ export default async function ForosIndexPage() {
       <div style={{ padding: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
         {list.length === 0 ? (
           <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '64px 16px' }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>📭</div>
             <p style={{ fontWeight: 700 }}>Aún no hay foros configurados</p>
             <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
               Corre <code>supabase/migrations/coldev_forums.sql</code>.
